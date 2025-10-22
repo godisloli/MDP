@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "112719912405",
+    "project_id": "expense-manager-ecc13",
+    "storage_bucket": "expense-manager-ecc13.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:112719912405:android:ad1e93e90ef9b346ea315c",
+        "android_client_info": {
+          "package_name": "net.tiramisu.mdp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB4CvyzqYjiRBK1zf7N227BxX3U5upg7kk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
