@@ -14,6 +14,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -33,19 +34,16 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // Ensure Firebase is initialized
         FirebaseApp.initializeApp(this);
 
         mAuth = FirebaseAuth.getInstance();
 
-        // Initialize views and listeners
         initViews();
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        // If user already signed in, go straight to MainActivity
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
             startMain();
@@ -146,15 +144,7 @@ public class LoginActivity extends AppCompatActivity {
                     .addOnCompleteListener(LoginActivity.this, task -> {
                         showLoading(false);
                         if (task.isSuccessful()) {
-                            // Get signed-in user and pass credentials to MainActivity
-                            FirebaseUser user = mAuth.getCurrentUser();
-                            String userEmail = user != null ? user.getEmail() : "";
-                            String userUid = user != null ? user.getUid() : "";
-
-                            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                            intent.putExtra("EXTRA_USER_EMAIL", userEmail);
-                            intent.putExtra("EXTRA_USER_UID", userUid);
-                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                            Intent intent = getIntent1();
                             startActivity(intent);
                             finish();
                         } else {
@@ -172,6 +162,19 @@ public class LoginActivity extends AppCompatActivity {
             showLoading(false);
             Toast.makeText(this, "Error: " + ex.getMessage(), Toast.LENGTH_LONG).show();
         }
+    }
+
+    @NonNull
+    private Intent getIntent1() {
+        FirebaseUser user = mAuth.getCurrentUser();
+        String userEmail = user != null ? user.getEmail() : "";
+        String userUid = user != null ? user.getUid() : "";
+
+        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+        intent.putExtra("EXTRA_USER_EMAIL", userEmail);
+        intent.putExtra("EXTRA_USER_UID", userUid);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        return intent;
     }
 
     private void startMain() {
