@@ -4,28 +4,6 @@
     <string name="app_name">Quản Lý Chi Tiêu</string>
     <string name="app_version">Phiên bản 1.0</string>
 
-    <!-- App short tagline -->
-    <string name="app_tagline">Theo dõi • Tiết kiệm • Phát triển</string>
-
-    <!-- Common labels -->
-    <string name="current_balance">Số dư hiện tại</string>
-    <string name="calendar">Lịch</string>
-    <string name="welcome">Xin chào</string>
-    <string name="welcome_user">Xin chào, %1$s</string>
-
-    <!-- Small UI labels -->
-    <string name="current_month">Tháng 10, 2025</string>
-    <string name="income_label">↗ Thu nhập</string>
-    <string name="expense_label">↙ Chi tiêu</string>
-    <string name="recent_transactions">Giao dịch gần đây</string>
-    <string name="add_transaction">Thêm giao dịch</string>
-
-    <!-- Sample transaction placeholders -->
-    <string name="transaction_movement">Di chuyển</string>
-    <string name="transaction_date_sample">05-10</string>
-    <string name="transaction_amount_sample">-300.000 ₫</string>
-    <string name="transaction_icon_desc">Biểu tượng giao dịch</string>
-
     <!-- 🏠 Trang chủ -->
     <string name="home_title">Trang chủ</string>
     <string name="home_welcome">Xin chào, hãy theo dõi chi tiêu của bạn hôm nay!</string>
@@ -94,41 +72,15 @@
 
     <!-- 📦 Khác -->
     <string name="no_data">Chưa có dữ liệu</string>
-    <string name="loading">Đang tải…</string>
+    <string name="loading">Đang tải...</string>
     <string name="try_again">Thử lại</string>
 
-    <!-- Common input hints -->
-    <string name="email_hint">Địa chỉ email</string>
-    <string name="password_hint">Mật khẩu</string>
-    <string name="full_name_hint">Họ và tên</string>
-    <string name="confirm_password_hint">Xác nhận mật khẩu</string>
-
-    <!-- Forget password strings -->
-    <string name="back">Quay lại</string>
-    <string name="forgot_password_title">Quên mật khẩu</string>
-    <string name="forgot_password_instruction">Nhập địa chỉ email của bạn và chúng tôi sẽ gửi hướng dẫn đặt lại mật khẩu.</string>
-    <string name="send_reset_link">Gửi liên kết đặt lại</string>
-    <string name="forgot_password_link">Quên mật khẩu?</string>
-
-    <!-- Messages used by ForgetPasswordActivity -->
-    <string name="enter_valid_email">Vui lòng nhập email hợp lệ</string>
-    <string name="no_network">Không có kết nối mạng</string>
-    <string name="firebase_not_initialized">Firebase chưa được khởi tạo</string>
-    <string name="check_email_reset">Kiểm tra email để nhận hướng dẫn đặt lại mật khẩu</string>
-    <string name="failed_send_reset">Gửi email đặt lại thất bại</string>
-    <string name="error_prefix">Lỗi: %1$s</string>
-
-    <!-- Back to login label used on register/forgot screens -->
-    <string name="back_to_login">← Quay lại đăng nhập</string>
-
-    <!-- Misc -->
-    <string name="app_logo">Biểu tượng ứng dụng</string>
-    <string name="copy_right">© 2025 Quản Lý Chi Tiêu</string>
-
-    <!-- Sample amounts -->
-    <string name="sample_balance">11.900.000 ₫</string>
-    <string name="sample_income">+17.000.000 ₫</string>
-    <string name="sample_expense">-5.100.000 ₫</string>
-
-
+    <!-- Login screen -->
+    <string name="expense_manager_title">Expense Manager</string>
+    <string name="track_save_grow">Track • Save • Grow</string>
+    <string name="email_hint">Email</string>
+    <string name="password_hint">Password</string>
+    <string name="app_logo_desc">Expense Manager logo</string>
+    <string name="copyright">© Tiramisu</string>
+    <string name="confirm_password">Confirm Password</string>
 </resources>

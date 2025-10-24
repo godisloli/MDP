@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -25,6 +26,7 @@ public class LoginActivity extends AppCompatActivity {
     private Button btnLogin, btnRegister;
     private ProgressBar progressBar;
     private FirebaseAuth mAuth;
+    private TextView tvForgotPassword;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -35,9 +37,6 @@ public class LoginActivity extends AppCompatActivity {
         FirebaseApp.initializeApp(this);
 
         mAuth = FirebaseAuth.getInstance();
-
-        // Bind progress bar early
-        progressBar = findViewById(R.id.progressBar);
 
         // Initialize views and listeners
         initViews();
@@ -58,6 +57,8 @@ public class LoginActivity extends AppCompatActivity {
         edtPassword = findViewById(R.id.edtPassword);
         btnLogin = findViewById(R.id.btnLogin);
         btnRegister = findViewById(R.id.btnRegister);
+        tvForgotPassword = findViewById(R.id.tvForgotPassword);
+        progressBar = findViewById(R.id.progressBar);
 
         if (btnLogin != null) {
             btnLogin.setOnClickListener(v -> login());
@@ -66,6 +67,13 @@ public class LoginActivity extends AppCompatActivity {
         if (btnRegister != null) {
             btnRegister.setOnClickListener(v -> {
                 Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+                startActivity(intent);
+            });
+        }
+
+        if (tvForgotPassword != null) {
+            tvForgotPassword.setOnClickListener(v -> {
+                Intent intent = new Intent(LoginActivity.this, ForgetPasswordActivity.class);
                 startActivity(intent);
             });
         }
@@ -113,6 +121,7 @@ public class LoginActivity extends AppCompatActivity {
         if (edtPassword != null) edtPassword.setEnabled(!show);
         if (btnLogin != null) btnLogin.setEnabled(!show);
         if (btnRegister != null) btnRegister.setEnabled(!show);
+        if (tvForgotPassword != null) tvForgotPassword.setEnabled(!show);
     }
 
     private void login() {

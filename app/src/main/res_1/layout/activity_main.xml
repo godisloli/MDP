@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_gradient">
+    android:background="@color/backgroundColor">
 
     <!-- Nội dung chính -->
     <ScrollView
@@ -19,15 +19,15 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Welcome / user email -->
+            <!-- User email / welcome -->
             <TextView
                 android:id="@+id/tvUserEmail"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/welcome"
+                android:text="Welcome"
+                android:textColor="@color/white"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="@color/textPrimary"
                 android:layout_marginBottom="8dp" />
 
             <!-- 🧾 Thẻ Số dư hiện tại -->
@@ -55,13 +55,13 @@
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:src="@drawable/ic_wallet"
-                            android:contentDescription="@string/app_logo"
+                            android:contentDescription="Wallet"
                             app:tint="@color/white" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/current_balance"
+                            android:text=" Số dư hiện tại"
                             android:textColor="@color/white"
                             android:textSize="14sp" />
                     </LinearLayout>
@@ -86,13 +86,13 @@
                             android:layout_width="18dp"
                             android:layout_height="18dp"
                             android:src="@drawable/ic_calendar"
-                            android:contentDescription="@string/calendar"
+                            android:contentDescription="Calendar"
                             app:tint="@color/white" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/current_month"
+                            android:text=" Tháng 10, 2025"
                             android:textColor="@color/white"
                             android:textSize="13sp" />
                     </LinearLayout>
@@ -126,7 +126,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/income_label"
+                            android:text="↗ Thu nhập"
                             android:textColor="#388E3C"
                             android:textSize="14sp"
                             android:textStyle="bold"
@@ -161,7 +161,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/expense_label"
+                            android:text="↙ Chi tiêu"
                             android:textColor="#C62828"
                             android:textSize="14sp"
                             android:textStyle="bold"
@@ -183,7 +183,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/recent_transactions"
+                android:text="Giao dịch gần đây"
                 android:textColor="@color/textPrimary"
                 android:textSize="16sp"
                 android:textStyle="bold"
@@ -203,17 +203,57 @@
                     android:orientation="vertical"
                     android:padding="12dp">
 
-                    <!-- RecyclerView for transactions -->
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/rvTransactions"
+                    <!-- 1 item -->
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:nestedScrollingEnabled="false" />
+                        android:paddingVertical="8dp"
+                        android:gravity="center_vertical">
 
+                        <ImageView
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:src="@drawable/ic_bill"
+                            android:layout_marginEnd="10dp" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Hóa đơn"
+                                android:textStyle="bold"
+                                android:textColor="@color/textPrimary"
+                                android:textSize="15sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="06-10"
+                                android:textColor="@color/textSecondary"
+                                android:textSize="13sp" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="-1.500.000 ₫"
+                            android:textColor="#D32F2F"
+                            android:textStyle="bold"
+                            android:textSize="15sp" />
+                    </LinearLayout>
+
+                    <!-- Tương tự các giao dịch khác -->
+                    <include layout="@layout/item_transaction_sample" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
         </LinearLayout>
     </ScrollView>
+
     <!-- 🔘 Nút thêm -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAdd"
@@ -224,7 +264,7 @@
         android:src="@drawable/ic_add"
         app:backgroundTint="@color/primaryColor"
         app:tint="@color/white"
-        android:contentDescription="@string/add_transaction" />
+        android:contentDescription="Add Transaction" />
 
     <!-- 🔽 Thanh điều hướng -->
     <com.google.android.material.bottomnavigation.BottomNavigationView

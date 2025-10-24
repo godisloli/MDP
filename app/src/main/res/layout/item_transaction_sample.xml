@@ -1,43 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingVertical="8dp"
-    android:gravity="center_vertical">
-
-    <ImageView
-        android:layout_width="36dp"
-        android:layout_height="36dp"
-        android:src="@drawable/ic_transport"
-        android:layout_marginEnd="10dp" />
+    android:layout_marginBottom="8dp"
+    android:cardCornerRadius="8dp"
+    android:cardElevation="2dp"
+    android:padding="10dp">
 
     <LinearLayout
-        android:layout_width="0dp"
-        android:layout_weight="1"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:id="@+id/ivIcon"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:src="@drawable/ic_receipt"
+            android:tint="@color/white"
+            android:contentDescription="" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginStart="12dp">
+
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Food"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/white" />
+
+            <TextView
+                android:id="@+id/tvSubtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cafe — 01-01-2025"
+                android:textSize="12sp"
+                android:textColor="@color/white"
+                android:layout_marginTop="2dp" />
+        </LinearLayout>
 
         <TextView
+            android:id="@+id/tvAmount"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Di chuyển"
+            android:text="-50,000 ₫"
+            android:textSize="14sp"
             android:textStyle="bold"
-            android:textColor="@color/textPrimary"
-            android:textSize="15sp" />
+            android:textColor="@color/colorExpense" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="05-10"
-            android:textColor="@color/textSecondary"
-            android:textSize="13sp" />
     </LinearLayout>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="-300.000 ₫"
-        android:textColor="#D32F2F"
-        android:textStyle="bold"
-        android:textSize="15sp" />
-</LinearLayout>
+</androidx.cardview.widget.CardView>

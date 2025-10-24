@@ -1,2 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <!-- App theme that applies a common window background to all activities -->
+    <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
+        <!-- Use the existing drawable as the window background so every activity gets the same background -->
+        <item name="android:windowBackground">@drawable/bg_expense_gradient</item>
+        <!-- keep other items inherited from parent -->
+    </style>
+</resources>
