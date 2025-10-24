@@ -25,14 +25,13 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final int REQ_ADD_TRANSACTION = 1001;
+    private static final int reqAddTransaction = 1001;
 
     private TextView tvUserEmail;
     private TextView tvBalance;
     private TextView tvIncome;
     private TextView tvExpense;
 
-    // RecyclerView for transactions
     private RecyclerView rvTransactions;
     private TransactionAdapter transactionAdapter;
     private FloatingActionButton fabAdd;
@@ -100,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
         if (fabAdd != null) {
             fabAdd.setOnClickListener(v -> {
                 Intent i = new Intent(MainActivity.this, AddTransactionActivity.class);
-                startActivityForResult(i, REQ_ADD_TRANSACTION);
+                startActivityForResult(i, reqAddTransaction);
             });
         }
     }
@@ -108,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQ_ADD_TRANSACTION && resultCode == RESULT_OK && data != null) {
+        if (requestCode == reqAddTransaction && resultCode == RESULT_OK && data != null) {
             String title = data.getStringExtra(AddTransactionActivity.EXTRA_TITLE);
             String date = data.getStringExtra(AddTransactionActivity.EXTRA_DATE);
             double amount = data.getDoubleExtra(AddTransactionActivity.EXTRA_AMOUNT, 0.0);
