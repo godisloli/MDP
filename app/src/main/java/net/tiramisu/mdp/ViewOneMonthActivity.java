@@ -31,7 +31,7 @@ public class ViewOneMonthActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_month_overview);
+        setContentView(R.layout.activity_statistic_overview);
 
         TextView tvMonthTitle = findViewById(R.id.tvMonthTitle);
         tvTotalIncome = findViewById(R.id.tvTotalIncome);

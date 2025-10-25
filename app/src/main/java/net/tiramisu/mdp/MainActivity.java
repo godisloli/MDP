@@ -2,214 +2,145 @@ package net.tiramisu.mdp;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.widget.ViewPager2;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
-
-import java.text.NumberFormat;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final int REQ_ADD_TRANSACTION = 1001;
-
-    private TextView tvUserEmail;
-    private TextView tvBalance;
-    private TextView tvIncome;
-    private TextView tvExpense;
-    private RecyclerView rvTransactions;
-    private TransactionAdapter transactionAdapter;
+    private ViewPager2 viewPager;
+    private BottomNavigationView bottomNav;
     private FloatingActionButton fabAdd;
+
+    // Activity Result launcher for AddTransactionActivity
+    private ActivityResultLauncher<Intent> addTransactionLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // If there's no authenticated user, redirect to LoginActivity immediately
-        if (com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() == null) {
-            Intent i = new Intent(MainActivity.this, LoginActivity.class);
-            i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(i);
-            finish();
-            return;
-        }
-
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_main);
-
-        tvUserEmail = findViewById(R.id.tvUserEmail);
-        tvBalance = findViewById(R.id.tvBalance);
-        tvIncome = findViewById(R.id.tvIncome);
-        tvExpense = findViewById(R.id.tvExpense);
-        // Layout defines the RecyclerView as rvRecent — use that id
-        rvTransactions = findViewById(R.id.rvRecent);
-        fabAdd = findViewById(R.id.fabAdd);
-
-        // Try to read extras passed from Login/Register
-        String email = getIntent().getStringExtra("EXTRA_USER_EMAIL");
-        String uid = getIntent().getStringExtra("EXTRA_USER_UID");
-
-        if (email == null || email.isEmpty()) {
-            // Fallback to FirebaseAuth current user
-            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-            if (user != null) {
-                email = user.getEmail();
-                uid = user.getUid();
+        try {
+            // Ensure Firebase is initialized before using FirebaseAuth
+            try {
+                FirebaseApp.initializeApp(this);
+            } catch (Exception ex) {
+                // If Firebase fails to initialize, continue but avoid calling FirebaseAuth
             }
-        }
 
-        if (tvUserEmail != null) {
-            if (email != null && !email.isEmpty()) {
-                tvUserEmail.setText(getString(R.string.welcome_user, email));
-            } else {
-                tvUserEmail.setText(R.string.welcome);
+            // If there's no authenticated user, redirect to LoginActivity immediately
+            try {
+                if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+                    Intent i = new Intent(MainActivity.this, LoginActivity.class);
+                    i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(i);
+                    finish();
+                    return;
+                }
+            } catch (Exception ex) {
+                // If FirebaseAuth is not available or throws, redirect to LoginActivity as a safe fallback
+                Intent i = new Intent(MainActivity.this, LoginActivity.class);
+                i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(i);
+                finish();
+                return;
             }
-        }
 
-        // If we have a uid, load financial data from Firestore
-        if (uid != null && !uid.isEmpty()) {
-            loadUserFinancialData(uid);
-        } else {
-            // Clear or show defaults
-            if (tvBalance != null) tvBalance.setText("0 ₫");
-            if (tvIncome != null) tvIncome.setText("0 ₫");
-            if (tvExpense != null) tvExpense.setText("0 ₫");
-        }
+            EdgeToEdge.enable(this);
+            setContentView(R.layout.activity_main);
 
-        // --- Setup transactions RecyclerView with sample data ---
-        if (rvTransactions != null) {
-            rvTransactions.setLayoutManager(new LinearLayoutManager(this));
+            viewPager = findViewById(R.id.viewPager);
+            bottomNav = findViewById(R.id.bottomNav);
+            fabAdd = findViewById(R.id.fabAdd);
 
-            List<Transaction> samples = new ArrayList<>();
-            // Sample items (amount positive = income, negative = expense)
-            samples.add(new Transaction("Lương", "20-10-2025", 17000000, R.drawable.ic_wallet));
-            samples.add(new Transaction("Hóa đơn", "06-10-2025", -1500000, R.drawable.ic_bill));
-            samples.add(new Transaction("Di chuyển", "05-10-2025", -300000, R.drawable.ic_transport));
-            samples.add(new Transaction("Tiền thưởng", "01-10-2025", 500000, R.drawable.ic_wallet));
-
-            transactionAdapter = new TransactionAdapter(samples);
-            rvTransactions.setAdapter(transactionAdapter);
-            rvTransactions.setNestedScrollingEnabled(false);
-        }
-
-        if (fabAdd != null) {
-            fabAdd.setOnClickListener(v -> {
-                Intent i = new Intent(MainActivity.this, AddTransactionActivity.class);
-                startActivityForResult(i, REQ_ADD_TRANSACTION);
-            });
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQ_ADD_TRANSACTION && resultCode == RESULT_OK && data != null) {
-            String title = data.getStringExtra(AddTransactionActivity.EXTRA_TITLE);
-            String date = data.getStringExtra(AddTransactionActivity.EXTRA_DATE);
-            double amount = data.getDoubleExtra(AddTransactionActivity.EXTRA_AMOUNT, 0.0);
-            boolean isIncome = data.getBooleanExtra(AddTransactionActivity.EXTRA_IS_INCOME, false);
-
-            // choose icon by category/simple heuristics
-            int icon = R.drawable.ic_wallet;
-            String category = data.getStringExtra(AddTransactionActivity.EXTRA_CATEGORY);
-            if (category != null && category.contains("Đi lại")) icon = R.drawable.ic_transport;
-            else if (category != null && category.contains("Hóa đơn")) icon = R.drawable.ic_bill;
-
-            Transaction tx = new Transaction(category != null ? category : title, date != null ? date : "", amount, icon);
-            if (transactionAdapter != null) {
-                transactionAdapter.addTransaction(tx);
-                if (rvTransactions != null) rvTransactions.scrollToPosition(0);
-            }
-        }
-    }
-
-    private void loadUserFinancialData(String uid) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("users").document(uid).get()
-                .addOnSuccessListener((DocumentSnapshot doc) -> {
-                    if (doc == null || !doc.exists()) {
-                        // no data
-                        setDefaults();
-                        return;
-                    }
-
-                    // Format currency for Vietnam
-                    NumberFormat fmt = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("vi-VN"));
-
-                    // balance field
-                    Object balanceObj = doc.get("balance");
-                    double balance = parseNumber(balanceObj);
-                    if (tvBalance != null) tvBalance.setText(fmt.format(balance));
-
-                    // Determine current month key in format YYYY-MM
-                    String monthKey;
-                    try {
-                        LocalDate now = LocalDate.now();
-                        monthKey = now.format(DateTimeFormatter.ofPattern("yyyy-MM"));
-                    } catch (Exception ex) {
-                        // fallback to simple year-month
-                        java.util.Calendar cal = java.util.Calendar.getInstance();
-                        monthKey = cal.get(java.util.Calendar.YEAR) + "-" + String.format(Locale.US, "%02d", cal.get(java.util.Calendar.MONTH) + 1);
-                    }
-
-                    // monthData expected as map: { "2025-10": { income: number, expense: number }, ... }
-                    Object monthDataObj = doc.get("monthData");
-                    if (monthDataObj instanceof Map) {
-                        @SuppressWarnings("unchecked")
-                        Map<String, Object> monthDataMap = (Map<String, Object>) monthDataObj;
-                        Object thisMonthObj = monthDataMap.get(monthKey);
-                        if (thisMonthObj instanceof Map) {
-                            @SuppressWarnings("unchecked")
-                            Map<String, Object> m = (Map<String, Object>) thisMonthObj;
-                            double income = parseNumber(m.get("income"));
-                            double expense = parseNumber(m.get("expense"));
-                            if (tvIncome != null) tvIncome.setText(fmt.format(income));
-                            if (tvExpense != null) tvExpense.setText(fmt.format(expense));
-                            return;
+            // Register the activity result launcher
+            addTransactionLauncher = registerForActivityResult(
+                    new ActivityResultContracts.StartActivityForResult(),
+                    result -> {
+                        if (result != null && result.getResultCode() == RESULT_OK && result.getData() != null) {
+                            // TODO: handle the newly added transaction, e.g. notify TransactionsFragment or refresh data
+                            // For now we'll simply switch to the Transactions page so the user can see the new item
+                            if (viewPager != null) viewPager.setCurrentItem(2, true);
                         }
                     }
+            );
 
-                    // If monthData not present or not in expected format, set defaults
-                    if (tvIncome != null) tvIncome.setText(fmt.format(0));
-                    if (tvExpense != null) tvExpense.setText(fmt.format(0));
-                })
-                .addOnFailureListener(e -> {
-                    // on error, set defaults
-                    setDefaults();
+            // Setup pager with adapter
+            ViewPagerAdapter adapter = new ViewPagerAdapter(this);
+            viewPager.setAdapter(adapter);
+            viewPager.setUserInputEnabled(true); // allow swipe
+            // Keep all 4 pages in memory to avoid re-creation during quick swipes
+            viewPager.setOffscreenPageLimit(4);
+            // Start on Home
+            viewPager.setCurrentItem(0, false);
+            if (bottomNav != null) bottomNav.setSelectedItemId(R.id.nav_home);
+
+            // Wire BottomNavigationView -> ViewPager (guarded against null)
+            if (bottomNav != null) {
+                bottomNav.setOnItemSelectedListener(item -> {
+                    int idx = menuItemToPosition(item.getItemId());
+                    if (idx >= 0) viewPager.setCurrentItem(idx, true);
+                    return true;
                 });
-    }
+            }
 
-    private double parseNumber(Object obj) {
-        if (obj == null) return 0.0;
-        try {
-            if (obj instanceof Number) return ((Number) obj).doubleValue();
-            String s = obj.toString();
-            s = s.replaceAll("[^0-9.-]", "");
-            if (s.isEmpty()) return 0.0;
-            return Double.parseDouble(s);
-        } catch (Exception ex) {
-            return 0.0;
+            // Wire ViewPager -> BottomNavigationView
+            viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+                @Override
+                public void onPageSelected(int position) {
+                    super.onPageSelected(position);
+                    int menuId = positionToMenuItem(position);
+                    if (menuId != -1 && bottomNav != null) bottomNav.setSelectedItemId(menuId);
+
+                    // Show/hide FAB based on page (show on Home/Transactions)
+                    if (fabAdd != null) {
+                        fabAdd.setVisibility((position == 0 || position == 2) ? FloatingActionButton.VISIBLE : FloatingActionButton.GONE);
+                    }
+                }
+            });
+
+            if (fabAdd != null) {
+                fabAdd.setOnClickListener(v -> {
+                    Intent i = new Intent(MainActivity.this, AddTransactionActivity.class);
+                    addTransactionLauncher.launch(i);
+                });
+            }
+
+        } catch (Throwable t) {
+            // Catch any unexpected startup errors, show a Toast and redirect to LoginActivity as a safe fallback
+            t.printStackTrace();
+            Toast.makeText(this, "App initialization error — redirecting to login.", Toast.LENGTH_LONG).show();
+            try {
+                Intent i = new Intent(MainActivity.this, LoginActivity.class);
+                i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(i);
+            } catch (Exception ignored) {}
+            finish();
         }
     }
 
-    private void setDefaults() {
-        NumberFormat fmt = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("vi-VN"));
-        if (tvBalance != null) tvBalance.setText(fmt.format(0));
-        if (tvIncome != null) tvIncome.setText(fmt.format(0));
-        if (tvExpense != null) tvExpense.setText(fmt.format(0));
+    private int menuItemToPosition(int menuId) {
+        // Use if/else because resource IDs are non-final under newer AGP and can't be used in switch-case
+        if (menuId == R.id.nav_home) return 0;
+        if (menuId == R.id.nav_chart) return 1;
+        if (menuId == R.id.nav_transactions) return 2;
+        if (menuId == R.id.nav_settings) return 3;
+        return -1;
+    }
+
+    private int positionToMenuItem(int pos) {
+        if (pos == 0) return R.id.nav_home;
+        if (pos == 1) return R.id.nav_chart;
+        if (pos == 2) return R.id.nav_transactions;
+        if (pos == 3) return R.id.nav_settings;
+        return -1;
     }
 }

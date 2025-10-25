@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_gradient">
 
+    <!-- AppBar (tuỳ chọn) -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -16,20 +17,23 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:title="Cài đặt"
+            android:title="@string/month_title"
             android:background="@android:color/transparent"/>
     </com.google.android.material.appbar.AppBarLayout>
 
+    <!-- Nội dung cuộn -->
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         android:padding="16dp"
-        android:clipToPadding="false">
+        android:paddingBottom="120dp"
+        android:clipToPadding="false"
+        android:scrollbars="none">
 
         <!-- include the fragment-friendly inner content -->
-        <include layout="@layout/content_settings" />
+        <include layout="@layout/content_statistic_overview" />
 
     </androidx.core.widget.NestedScrollView>
-
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
