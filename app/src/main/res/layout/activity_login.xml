@@ -3,8 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_gradient">>
-
+    android:background="@drawable/bg_gradient">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -13,7 +12,7 @@
         android:gravity="center"
         android:padding="32dp">
 
-        <!-- Logo ví -->
+        <!-- Logo -->
         <ImageView
             android:src="@drawable/ic_wallet"
             android:contentDescription="@string/app_logo"
@@ -22,8 +21,7 @@
             android:layout_marginBottom="16dp"
             app:tint="#16A34A" />
 
-
-        <!-- Tiêu đề -->
+        <!-- Title -->
         <TextView
             android:text="@string/app_name"
             android:textSize="26sp"
@@ -41,7 +39,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
-        <!-- Vùng trắng chứa form -->
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="match_parent"
@@ -72,7 +69,6 @@
                 android:background="@drawable/edittext_bg"
                 android:padding="12dp" />
 
-            <!-- Forgot password link -->
             <TextView
                 android:id="@+id/tvForgotPassword"
                 android:text="@string/forgot_password_link"
@@ -81,7 +77,8 @@
                 android:layout_marginTop="8dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:clickable="true" />
+                android:clickable="true"
+                android:background="?attr/selectableItemBackground" />
 
             <Button
                 android:id="@+id/btnLogin"
@@ -92,7 +89,8 @@
                 android:layout_marginTop="12dp"
                 android:backgroundTint="#16A34A"
                 android:textColor="@android:color/white"
-                android:layout_gravity="center" />
+                android:layout_gravity="center"
+                android:foreground="?attr/selectableItemBackground" />
 
             <Button
                 android:id="@+id/btnRegister"
@@ -101,7 +99,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:backgroundTint="#9CA3AF"
-                android:textColor="@android:color/white" />
+                android:textColor="@android:color/white"
+                android:foreground="?attr/selectableItemBackground" />
 
             <ProgressBar
                 android:id="@+id/progressBar"
@@ -113,6 +112,7 @@
         </LinearLayout>
 
         <TextView
+            android:id="@+id/tvCopyRight"
             android:text="@string/copy_right"
             android:textSize="12sp"
             android:textColor="#A7F3D0"

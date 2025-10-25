@@ -10,7 +10,7 @@ public class ViewDetailsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_view_details);
+        setContentView(R.layout.activity_transaction_detail);
 
         TextView tvTransactionTitle = findViewById(R.id.tvTransactionTitle);
         TextView tvTransactionDate = findViewById(R.id.tvTransactionDate);

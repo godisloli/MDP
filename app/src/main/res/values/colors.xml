@@ -1,34 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="primaryColor">#4CAF50</color>
     <color name="primaryDarkColor">#2E7D32</color>
     <color name="accentColor">#FF9800</color>
     <color name="backgroundColor">#F8F9FA</color>
-    <color name="textPrimary">#212121</color>
-    <color name="textSecondary">#757575</color>
-    <color name="white">#FFFFFF</color>
+
     <color name="primary">#16A34A</color>
     <color name="primaryDark">#0F7A3E</color>
     <color name="background">#F8FAFC</color>
+
+    <color name="textPrimary">#212121</color>
+    <color name="textSecondary">#757575</color>
     <color name="textDark">#1E293B</color>
-    <color name="grayLight">#E5E7EB</color>
-    <color name="grayDark">#6B7280</color>
-    <color name="green">#16A34A</color>
-    <color name="black">#1A1A1A</color>
-    <color name="gray_200">#E6E6E6</color>
-    <color name="gray_600">#6E6E6E</color>
-    <color name="gray_700">#4F4F4F</color>
-    <color name="red">#E53935</color>
-    <color name="red_50">#FFF1F1</color>
-    <color name="teal_500">#14B8A6</color>
-    <color name="black">#1A1A1A</color>
+
     <color name="white">#FFFFFF</color>
+    <color name="black">#1A1A1A</color>
 
+    <color name="grayLight">#E5E7EB</color>
     <color name="gray_200">#E6E6E6</color>
     <color name="gray_600">#6E6E6E</color>
     <color name="gray_700">#4F4F4F</color>
+    <color name="grayDark">#6B7280</color>
 
-    <color name="teal_500">#14B8A6</color>
     <color name="green">#10B981</color>
+    <color name="teal_500">#14B8A6</color>
 
     <color name="red">#E53935</color>
     <color name="red_50">#FFF1F1</color>

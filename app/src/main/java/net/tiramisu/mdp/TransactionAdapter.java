@@ -25,7 +25,8 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_transaction_sample, parent, false);
+        // Use the provided item_transaction_mini layout which exists in the project
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_transaction_mini, parent, false);
         return new ViewHolder(v);
     }
 
@@ -33,7 +34,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Transaction t = items.get(position);
         holder.title.setText(t.title);
-        holder.date.setText(t.date);
+        holder.sub.setText(t.date);
         // Format amount
         holder.amount.setText(fmt.format(t.amount));
         // color negative in red, positive in green
@@ -59,15 +60,15 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView icon;
         TextView title;
-        TextView date;
+        TextView sub;
         TextView amount;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             icon = itemView.findViewById(R.id.ivIcon);
-            title = itemView.findViewById(R.id.tvTransactionTitle);
-            date = itemView.findViewById(R.id.tvTransactionDate);
-            amount = itemView.findViewById(R.id.tvTransactionAmount);
+            title = itemView.findViewById(R.id.tvTitle);
+            sub = itemView.findViewById(R.id.tvSub);
+            amount = itemView.findViewById(R.id.tvAmount);
         }
     }
 }
