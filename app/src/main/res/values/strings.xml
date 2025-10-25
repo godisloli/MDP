@@ -105,10 +105,10 @@
 
     <!-- Forget password strings -->
     <string name="back">Quay lại</string>
-    <string name="forgot_password_title">Quên m���t khẩu</string>
+    <string name="forgot_password_title">Quên mật khẩu</string>
     <string name="forgot_password_instruction">Nhập địa chỉ email của bạn và chúng tôi sẽ gửi hướng dẫn đặt lại mật khẩu.</string>
     <string name="send_reset_link">Gửi liên kết đặt lại</string>
-    <string name="forgot_password_link">Quên m���t khẩu?</string>
+    <string name="forgot_password_link">Quên mật khẩu?</string>
 
     <!-- Messages used by ForgetPasswordActivity -->
     <string name="enter_valid_email">Vui lòng nhập email hợp lệ</string>
