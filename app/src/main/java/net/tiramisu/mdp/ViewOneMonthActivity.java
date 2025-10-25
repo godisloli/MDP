@@ -23,25 +23,22 @@ import android.graphics.Color;
 
 public class ViewOneMonthActivity extends AppCompatActivity {
 
-    private TextView tvMonthTitle;
     private TextView tvTotalIncome;
     private TextView tvTotalExpense;
     private TextView tvMonthBalance;
-    private RecyclerView rvMonthTransactions;
-    private TransactionAdapter adapter;
-    private BarChart barChartMonthExpenses;
+    private BarChart barChartMonth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_month_overview);
 
-        tvMonthTitle = findViewById(R.id.tvMonthTitle);
+        TextView tvMonthTitle = findViewById(R.id.tvMonthTitle);
         tvTotalIncome = findViewById(R.id.tvTotalIncome);
         tvTotalExpense = findViewById(R.id.tvTotalExpense);
         tvMonthBalance = findViewById(R.id.tvMonthBalance);
-        rvMonthTransactions = findViewById(R.id.rvMonthTransactions);
-        barChartMonthExpenses = findViewById(R.id.barChartMonthExpenses);
+        RecyclerView rvMonthTransactions = findViewById(R.id.rvMonthTransactions);
+        barChartMonth = findViewById(R.id.barChartMonth);
 
         String monthLabel = getIntent().getStringExtra("EXTRA_MONTH_LABEL");
         if (monthLabel == null || monthLabel.isEmpty()) {
@@ -60,7 +57,7 @@ public class ViewOneMonthActivity extends AppCompatActivity {
 
         // Setup RecyclerView
         rvMonthTransactions.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new TransactionAdapter(samples);
+        TransactionAdapter adapter = new TransactionAdapter(samples);
         rvMonthTransactions.setAdapter(adapter);
 
         setupExpenseChart(samples);
@@ -92,7 +89,8 @@ public class ViewOneMonthActivity extends AppCompatActivity {
                     day = Integer.parseInt(parts[0]);
                 } catch (Exception ignored) {}
                 int weekIdx = Math.min((day - 1) / 7, 3);
-                weekExpense[weekIdx] += -t.amount;
+                // t.amount is negative for expenses; use Math.abs and cast to float to avoid lossy implicit casts
+                weekExpense[weekIdx] += (float) Math.abs(t.amount);
             }
         }
         List<BarEntry> entries = new ArrayList<>();
@@ -105,21 +103,21 @@ public class ViewOneMonthActivity extends AppCompatActivity {
         set.setValueTextSize(12f);
         BarData data = new BarData(set);
         data.setBarWidth(0.6f);
-        barChartMonthExpenses.setData(data);
+        barChartMonth.setData(data);
         List<String> labels = new ArrayList<>();
         labels.add("Tuần 1");
         labels.add("Tuần 2");
         labels.add("Tuần 3");
         labels.add("Tuần 4");
-        XAxis xAxis = barChartMonthExpenses.getXAxis();
+        XAxis xAxis = barChartMonth.getXAxis();
         xAxis.setValueFormatter(new IndexAxisValueFormatter(labels));
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setDrawGridLines(false);
         xAxis.setGranularity(1f);
-        barChartMonthExpenses.getDescription().setEnabled(false);
-        barChartMonthExpenses.setDrawGridBackground(false);
-        barChartMonthExpenses.setFitBars(true);
-        barChartMonthExpenses.animateY(700);
-        barChartMonthExpenses.invalidate();
+        barChartMonth.getDescription().setEnabled(false);
+        barChartMonth.setDrawGridBackground(false);
+        barChartMonth.setFitBars(true);
+        barChartMonth.animateY(700);
+        barChartMonth.invalidate();
     }
 }

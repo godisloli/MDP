@@ -72,7 +72,7 @@
     <string name="dark_mode">Chế độ tối</string>
     <string name="light_mode">Chế độ sáng</string>
 
-    <!-- 👤 Ngư���i dùng -->
+    <!-- 👤 Ngư�����i dùng -->
     <string name="profile">Hồ sơ cá nhân</string>
     <string name="user_name">Tên người dùng</string>
     <string name="logout">Đăng xuất</string>
@@ -131,7 +131,7 @@
     <string name="sample_expense">-5.100.000 ₫</string>
 
     <!-- Strings used by activity_transaction_detail.xml -->
-    <string name="transaction_detail_title">Chi tiết giao dịch</string>
+    <string name="transaction_detail_title">Chi ti���t giao dịch</string>
     <string name="transaction_sample_title">Bữa trưa</string>
     <string name="transaction_sample_date">01/10/2025 · 12:30</string>
     <string name="chip_type_expense">Chi tiêu</string>
@@ -139,6 +139,16 @@
     <string name="wallet_label">Ví/Tài khoản</string>
     <string name="cash_label">Tiền mặt</string>
     <string name="no_note">Không có ghi chú</string>
+
+    <!-- Transaction detail helper strings -->
+    <string name="transaction_amount_label">Số tiền: %1$s</string>
+    <string name="transaction_date_label">Ngày: %1$s</string>
+    <string name="transaction_category_label">Danh mục: %1$s</string>
+    <string name="transaction_note_label">Ghi chú: %1$s</string>
+    <string name="transaction_title_default">Tiêu đề giao dịch</string>
+    <string name="transaction_date_default">N/A</string>
+    <string name="transaction_category_default">Chung</string>
+    <string name="transaction_note_default">Không có ghi chú</string>
 
     <!-- Month overview strings -->
     <string name="month_title">Tháng</string>

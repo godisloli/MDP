@@ -5,6 +5,9 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.text.NumberFormat;
+import java.util.Locale;
+
 public class ViewDetailsActivity extends AppCompatActivity {
 
     @Override
@@ -12,11 +15,12 @@ public class ViewDetailsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_transaction_detail);
 
-        TextView tvTransactionTitle = findViewById(R.id.tvTransactionTitle);
-        TextView tvTransactionDate = findViewById(R.id.tvTransactionDate);
-        TextView tvTransactionAmount = findViewById(R.id.tvTransactionAmount);
-        TextView tvTransactionCategory = findViewById(R.id.tvTransactionCategory);
-        TextView tvTransactionNote = findViewById(R.id.tvTransactionNote);
+        // Use IDs that exist in activity_transaction_detail.xml
+        TextView tvDetailTitle = findViewById(R.id.tvDetailTitle);
+        TextView tvDetailDate = findViewById(R.id.tvDetailDate);
+        TextView tvDetailAmount = findViewById(R.id.tvDetailAmount);
+        TextView tvDetailCategory = findViewById(R.id.tvDetailCategory);
+        TextView tvDetailNote = findViewById(R.id.tvDetailNote);
 
         // Retrieve transaction details from intent extras
         String title = getIntent().getStringExtra("EXTRA_TITLE");
@@ -25,11 +29,31 @@ public class ViewDetailsActivity extends AppCompatActivity {
         String category = getIntent().getStringExtra("EXTRA_CATEGORY");
         String note = getIntent().getStringExtra("EXTRA_NOTE");
 
-        // Set the transaction details to the TextViews
-        tvTransactionTitle.setText(title != null ? title : "Transaction Title");
-        tvTransactionDate.setText(date != null ? "Date: " + date : "Date: N/A");
-        tvTransactionAmount.setText("Amount: " + amount + " ₫");
-        tvTransactionCategory.setText(category != null ? "Category: " + category : "Category: General");
-        tvTransactionNote.setText(note != null ? "Note: " + note : "Note: No additional details");
+        // Format amount using locale-aware currency formatting
+        NumberFormat fmt = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("vi-VN"));
+        String amountStr = fmt.format(amount);
+
+        // Set the transaction details to the TextViews using string resources
+        tvDetailTitle.setText(title != null ? title : getString(R.string.transaction_title_default));
+
+        if (date != null && !date.isEmpty()) {
+            tvDetailDate.setText(getString(R.string.transaction_date_label, date));
+        } else {
+            tvDetailDate.setText(getString(R.string.transaction_date_label, getString(R.string.transaction_date_default)));
+        }
+
+        tvDetailAmount.setText(getString(R.string.transaction_amount_label, amountStr));
+
+        if (category != null && !category.isEmpty()) {
+            tvDetailCategory.setText(getString(R.string.transaction_category_label, category));
+        } else {
+            tvDetailCategory.setText(getString(R.string.transaction_category_label, getString(R.string.transaction_category_default)));
+        }
+
+        if (note != null && !note.isEmpty()) {
+            tvDetailNote.setText(getString(R.string.transaction_note_label, note));
+        } else {
+            tvDetailNote.setText(getString(R.string.transaction_note_label, getString(R.string.transaction_note_default)));
+        }
     }
 }
