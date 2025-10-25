@@ -143,6 +143,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
+                    android:background="#7EE7C8"
                     android:padding="12dp">
 
                     <TextView
@@ -159,7 +160,7 @@
                         android:id="@+id/barChartMonth"
                         android:layout_width="match_parent"
                         android:layout_height="240dp"
-                        android:background="#00FFFFFF" />
+                        android:background="#BBFDE7" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 

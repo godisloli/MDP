@@ -58,6 +58,31 @@ public class LoginActivity extends AppCompatActivity {
         tvForgotPassword = findViewById(R.id.tvForgotPassword);
         progressBar = findViewById(R.id.progressBar);
 
+        // Make hints disappear when field is focused, and restore when focus is lost and field is empty
+        if (edtEmail != null) {
+            edtEmail.setOnFocusChangeListener((v, hasFocus) -> {
+                if (hasFocus) {
+                    edtEmail.setHint("");
+                } else {
+                    if (edtEmail.getText().toString().isEmpty()) {
+                        edtEmail.setHint(getString(R.string.email_hint));
+                    }
+                }
+            });
+        }
+
+        if (edtPassword != null) {
+            edtPassword.setOnFocusChangeListener((v, hasFocus) -> {
+                if (hasFocus) {
+                    edtPassword.setHint("");
+                } else {
+                    if (edtPassword.getText().toString().isEmpty()) {
+                        edtPassword.setHint(getString(R.string.password_hint));
+                    }
+                }
+            });
+        }
+
         if (btnLogin != null) {
             btnLogin.setOnClickListener(v -> login());
         }
@@ -71,6 +96,10 @@ public class LoginActivity extends AppCompatActivity {
 
         if (tvForgotPassword != null) {
             tvForgotPassword.setOnClickListener(v -> {
+                // Hide the email and password fields before switching to forget-password screen
+                if (edtEmail != null) edtEmail.setVisibility(View.GONE);
+                if (edtPassword != null) edtPassword.setVisibility(View.GONE);
+
                 Intent intent = new Intent(LoginActivity.this, ForgetPasswordActivity.class);
                 startActivity(intent);
             });
@@ -182,5 +211,23 @@ public class LoginActivity extends AppCompatActivity {
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
         finish();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Restore email/password fields when returning to this activity
+        if (edtEmail != null) {
+            edtEmail.setVisibility(View.VISIBLE);
+            if (edtEmail.getText().toString().isEmpty()) {
+                edtEmail.setHint(getString(R.string.email_hint));
+            }
+        }
+        if (edtPassword != null) {
+            edtPassword.setVisibility(View.VISIBLE);
+            if (edtPassword.getText().toString().isEmpty()) {
+                edtPassword.setHint(getString(R.string.password_hint));
+            }
+        }
     }
 }

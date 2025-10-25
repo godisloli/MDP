@@ -34,7 +34,7 @@
         <TextView
             android:text="@string/app_tagline"
             android:textSize="14sp"
-            android:textColor="#E0F2F1"
+            android:textColor="#0F817C"
             android:layout_marginBottom="32dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
@@ -51,6 +51,7 @@
             <EditText
                 android:id="@+id/edtEmail"
                 android:hint="@string/email_hint"
+                android:textColor="@color/black"
                 android:inputType="textEmailAddress"
                 android:autofillHints="emailAddress"
                 android:layout_width="match_parent"
@@ -61,6 +62,7 @@
             <EditText
                 android:id="@+id/edtPassword"
                 android:hint="@string/password_hint"
+                android:textColor="@color/black"
                 android:inputType="textPassword"
                 android:autofillHints="password"
                 android:layout_width="match_parent"
@@ -115,7 +117,7 @@
             android:id="@+id/tvCopyRight"
             android:text="@string/copy_right"
             android:textSize="12sp"
-            android:textColor="#A7F3D0"
+            android:textColor="#10CE77"
             android:layout_marginTop="8dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />

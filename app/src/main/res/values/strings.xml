@@ -98,8 +98,8 @@
     <string name="try_again">Thử lại</string>
 
     <!-- Common input hints -->
-    <string name="email_hint">Địa chỉ email</string>
-    <string name="password_hint">Mật khẩu</string>
+    <string name="email_hint">Email</string>
+    <string name="password_hint">Password</string>
     <string name="full_name_hint">Họ và tên</string>
     <string name="confirm_password_hint">Xác nhận mật khẩu</string>
 

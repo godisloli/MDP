@@ -70,7 +70,7 @@
                         android:id="@+id/tvBalance"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="11.900.000 ₫"
+                        android:text="N/A ₫"
                         android:textColor="@color/white"
                         android:textSize="28sp"
                         android:textStyle="bold"
@@ -136,7 +136,7 @@
                             android:id="@+id/tvIncome"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="+17.000.000 ₫"
+                            android:text="N/A ₫"
                             android:textColor="#2E7D32"
                             android:textStyle="bold"
                             android:textSize="18sp" />
@@ -171,7 +171,7 @@
                             android:id="@+id/tvExpense"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="-5.100.000 ₫"
+                            android:text="N/A ₫"
                             android:textColor="#B71C1C"
                             android:textStyle="bold"
                             android:textSize="18sp" />

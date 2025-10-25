@@ -38,6 +38,16 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // If there's no authenticated user, redirect to LoginActivity immediately
+        if (com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() == null) {
+            Intent i = new Intent(MainActivity.this, LoginActivity.class);
+            i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(i);
+            finish();
+            return;
+        }
+
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
@@ -45,7 +55,8 @@ public class MainActivity extends AppCompatActivity {
         tvBalance = findViewById(R.id.tvBalance);
         tvIncome = findViewById(R.id.tvIncome);
         tvExpense = findViewById(R.id.tvExpense);
-        rvTransactions = findViewById(R.id.rvTransactions);
+        // Layout defines the RecyclerView as rvRecent — use that id
+        rvTransactions = findViewById(R.id.rvRecent);
         fabAdd = findViewById(R.id.fabAdd);
 
         // Try to read extras passed from Login/Register
