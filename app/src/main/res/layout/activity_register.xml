@@ -105,12 +105,13 @@
         <!-- Quay lại Login -->
         <TextView
             android:id="@+id/tvBackLogin"
-            android:text="@string/back_to_login"
-            android:textColor="#059669"
-            android:textSize="14sp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:clickable="true"
-            android:foreground="?attr/selectableItemBackground" />
+            android:foreground="?attr/selectableItemBackground"
+            android:minHeight="48dp"
+            android:text="@string/back_to_login"
+            android:textColor="#059669"
+            android:textSize="14sp" />
     </LinearLayout>
 </ScrollView>

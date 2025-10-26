@@ -1,19 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Inner content for transactions (used by activity and fragment) -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
-    android:padding="16dp">
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <!-- 3 ô tổng quan -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:weightSum="3"
-        android:layout_marginBottom="12dp">
+        android:layout_marginBottom="20dp"
+        android:baselineAligned="false">
 
         <LinearLayout
             android:layout_width="0dp"
@@ -22,9 +18,9 @@
             android:orientation="vertical"
             android:padding="12dp"
             android:background="@drawable/white_card">
-            <TextView android:text="Tổng thu" android:textColor="#2E7D32"
+            <TextView android:text="@string/total_income_label" android:textColor="#2E7D32"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-            <TextView android:id="@+id/tvSumIncome" android:text="0 ₫"
+            <TextView android:id="@+id/tvSumIncome" android:text="@string/zero_currency"
                 android:textStyle="bold" android:textSize="16sp" android:textColor="#2E7D32"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"/>
         </LinearLayout>
@@ -38,9 +34,9 @@
             android:orientation="vertical"
             android:padding="12dp"
             android:background="@drawable/white_card">
-            <TextView android:text="Tổng chi" android:textColor="#D32F2F"
+            <TextView android:text="@string/total_expense_label" android:textColor="#D32F2F"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-            <TextView android:id="@+id/tvSumExpense" android:text="0 ₫"
+            <TextView android:id="@+id/tvSumExpense" android:text="@string/zero_currency"
                 android:textStyle="bold" android:textSize="16sp" android:textColor="#D32F2F"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"/>
         </LinearLayout>
@@ -52,9 +48,9 @@
             android:orientation="vertical"
             android:padding="12dp"
             android:background="@drawable/white_card">
-            <TextView android:text="Số dư" android:textColor="@android:color/black"
+            <TextView android:text="@string/month_balance_label" android:textColor="@android:color/black"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-            <TextView android:id="@+id/tvSumBalance" android:text="0 ₫"
+            <TextView android:id="@+id/tvSumBalance" android:text="@string/zero_currency"
                 android:textStyle="bold" android:textSize="16sp" android:textColor="@android:color/black"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"/>
         </LinearLayout>
@@ -66,59 +62,88 @@
         android:layout_width="match_parent"
         android:layout_height="44dp"
         android:background="@drawable/edittext_bg"
-        android:hint="Tìm kiếm giao dịch…"
+        android:hint="@string/search_transactions_hint"
         android:paddingStart="12dp"
         android:paddingEnd="12dp"
         android:textColorHint="#8A8A8A"
-        android:layout_marginBottom="8dp"/>
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:inputType="text"
+        android:autofillHints="none"
+        />
 
     <!-- Filters -->
-    <com.google.android.material.chip.ChipGroup
-        android:id="@+id/chips"
+    <!-- Make chips horizontally scrollable so they don't get clipped on small screens -->
+    <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:fillViewport="true"
         android:layout_marginBottom="12dp"
-        android:orientation="horizontal"
-        app:singleSelection="true">
+        android:scrollbars="none">
 
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chAll"
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chips"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:checked="true"
-            android:text="Tất cả"/>
+            android:orientation="horizontal"
+            app:singleSelection="true"
+            app:chipSpacing="8dp">
 
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chIncome"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Thu"/>
+            <com.google.android.material.chip.Chip
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:id="@+id/chAll"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="@string/chip_all" />
 
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chExpense"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Chi"/>
-    </com.google.android.material.chip.ChipGroup>
+            <com.google.android.material.chip.Chip
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:id="@+id/chIncome"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/chip_income" />
 
-    <!-- Transactions list -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvTransactions"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:nestedScrollingEnabled="false"
-        android:clipToPadding="false"/>
+            <com.google.android.material.chip.Chip
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:id="@+id/chExpense"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/chip_expense" />
 
+        </com.google.android.material.chip.ChipGroup>
+
+    </HorizontalScrollView>
+
+    <!-- Transactions list: center the RecyclerView vertically by placing it inside a weight container -->
     <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvTransactions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clipToPadding="false"
+            android:minHeight="200dp"
+            android:nestedScrollingEnabled="false" />
+
+    </LinearLayout>
+
+    <TextView
         android:id="@+id/emptyView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
         android:gravity="center"
         android:padding="24dp"
-        android:visibility="gone">
-        <ImageView android:layout_width="40dp" android:layout_height="40dp" android:src="@drawable/ic_transaction"/>
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Không có giao dịch nào" android:layout_marginTop="8dp"/>
-    </LinearLayout>
+        android:visibility="gone"
+        android:text="@string/no_transactions"
+        app:drawableTopCompat="@drawable/ic_transaction"
+        android:drawablePadding="8dp"
+        android:contentDescription="@string/transaction_icon_desc"
+        android:textAppearance="?attr/textAppearanceBody1" />
 
-</LinearLayout>
+</merge>

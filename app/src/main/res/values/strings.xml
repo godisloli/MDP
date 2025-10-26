@@ -184,4 +184,11 @@
     <string name="ic_settings_desc">Cài đặt</string>
     <string name="ic_calendar_desc">Lịch</string>
 
+    <!-- Strings referenced by content_transactions.xml -->
+    <string name="search_transactions_hint">Tìm kiếm giao dịch…</string>
+    <string name="chip_all">Tất cả</string>
+    <string name="chip_income">Thu</string>
+    <string name="chip_expense">Chi</string>
+    <string name="no_transactions">Không có giao dịch nào</string>
+
 </resources>

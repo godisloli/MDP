@@ -15,6 +15,10 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+
 public class MainActivity extends AppCompatActivity {
 
     private ViewPager2 viewPager;
@@ -117,6 +121,18 @@ public class MainActivity extends AppCompatActivity {
         } catch (Throwable t) {
             // Catch any unexpected startup errors, show a Toast and redirect to LoginActivity as a safe fallback
             t.printStackTrace();
+            try {
+                File f = new File(getFilesDir(), "crash_main_oncreate.txt");
+                FileWriter fw = new FileWriter(f, true);
+                fw.write("\n---- MainActivity onCreate crash on " + System.currentTimeMillis() + " ----\n");
+                PrintWriter pw = new PrintWriter(fw);
+                t.printStackTrace(pw);
+                pw.flush();
+                pw.close();
+                fw.close();
+            } catch (Exception e) {
+                // ignore file write failures
+            }
             Toast.makeText(this, "App initialization error — redirecting to login.", Toast.LENGTH_LONG).show();
             try {
                 Intent i = new Intent(MainActivity.this, LoginActivity.class);

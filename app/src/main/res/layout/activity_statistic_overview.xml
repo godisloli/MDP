@@ -32,8 +32,15 @@
         android:clipToPadding="false"
         android:scrollbars="none">
 
-        <!-- include the fragment-friendly inner content -->
-        <include layout="@layout/content_statistic_overview" />
+        <!-- Ensure NestedScrollView has exactly one direct child: wrap the included merge layout -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <include layout="@layout/content_statistic_overview" />
+
+        </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -64,10 +64,17 @@ public class LoginActivity extends AppCompatActivity {
                 if (hasFocus) {
                     edtEmail.setHint("");
                 } else {
-                    if (edtEmail.getText().toString().isEmpty()) {
+                    if (edtEmail.getText() == null || edtEmail.getText().toString().isEmpty()) {
                         edtEmail.setHint(getString(R.string.email_hint));
                     }
                 }
+            });
+
+            // Also clear hint on click (touch) so users who tap immediately see an empty field
+            edtEmail.setOnClickListener(v -> {
+                try {
+                    edtEmail.setHint("");
+                } catch (Exception ignored) {}
             });
         }
 
@@ -76,10 +83,17 @@ public class LoginActivity extends AppCompatActivity {
                 if (hasFocus) {
                     edtPassword.setHint("");
                 } else {
-                    if (edtPassword.getText().toString().isEmpty()) {
+                    if (edtPassword.getText() == null || edtPassword.getText().toString().isEmpty()) {
                         edtPassword.setHint(getString(R.string.password_hint));
                     }
                 }
+            });
+
+            // Also clear hint on click (touch)
+            edtPassword.setOnClickListener(v -> {
+                try {
+                    edtPassword.setHint("");
+                } catch (Exception ignored) {}
             });
         }
 

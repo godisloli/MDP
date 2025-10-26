@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -15,11 +16,16 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+
 public class RegisterActivity extends AppCompatActivity {
     private EditText edtEmail, edtPassword, edtConfirmPassword;
     private Button btnRegister;
     private ProgressBar progressBar;
     private FirebaseAuth mAuth;
+    private TextView tvBackLogin; // added field
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -35,6 +41,14 @@ public class RegisterActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.progressBar);
 
         btnRegister.setOnClickListener(v -> registerUser());
+
+        // Wire the back-to-login text view (if present)
+        if (tvBackLogin != null) {
+            tvBackLogin.setOnClickListener(v -> {
+                // Simply finish this activity to return to the previous (LoginActivity)
+                finish();
+            });
+        }
     }
 
     private void initViews() {
@@ -42,6 +56,7 @@ public class RegisterActivity extends AppCompatActivity {
         edtPassword = findViewById(R.id.edtPassword);
         edtConfirmPassword = findViewById(R.id.edtConfirmPassword);
         btnRegister = findViewById(R.id.btnRegister);
+        tvBackLogin = findViewById(R.id.tvBackLogin); // initialize the text view
     }
 
     private boolean validateInput() {
@@ -107,9 +122,25 @@ public class RegisterActivity extends AppCompatActivity {
                         Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
                         intent.putExtra("EXTRA_USER_EMAIL", userEmail);
                         intent.putExtra("EXTRA_USER_UID", userUid);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                        startActivity(intent);
-                        finish();
+                        // Start MainActivity normally (no NEW_TASK / CLEAR_TOP flags)
+                        try {
+                            startActivity(intent);
+                            finish();
+                        } catch (Exception ex) {
+                            // Log the exception to an internal crash log so you can pull it for analysis
+                            try {
+                                File f = new File(getFilesDir(), "register_start_error.txt");
+                                FileWriter fw = new FileWriter(f, true);
+                                fw.write("\n---- Start MainActivity error on " + System.currentTimeMillis() + " ----\n");
+                                PrintWriter pw = new PrintWriter(fw);
+                                ex.printStackTrace(pw);
+                                pw.flush();
+                                pw.close();
+                                fw.close();
+                            } catch (Exception ignored) {}
+                            // Show a toast so user knows something went wrong instead of a crash.
+                            Toast.makeText(RegisterActivity.this, "Failed to open app: " + ex.getMessage(), Toast.LENGTH_LONG).show();
+                        }
                     } else {
                         String msg = "Registration failed.";
                         if (task.getException() != null) msg = task.getException().getMessage();
