@@ -57,6 +57,13 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         notifyItemInserted(0);
     }
 
+    // Replace full list of items (for refresh)
+    public void setItems(java.util.List<Transaction> list) {
+        items.clear();
+        if (list != null) items.addAll(list);
+        notifyDataSetChanged();
+    }
+
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView icon;
         TextView title;

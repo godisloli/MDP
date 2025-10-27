@@ -8,6 +8,7 @@ import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -70,9 +71,43 @@ public class MainActivity extends AppCompatActivity {
                     new ActivityResultContracts.StartActivityForResult(),
                     result -> {
                         if (result != null && result.getResultCode() == RESULT_OK && result.getData() != null) {
-                            // TODO: handle the newly added transaction, e.g. notify TransactionsFragment or refresh data
-                            // For now we'll simply switch to the Transactions page so the user can see the new item
+                            // Extract transaction data
+                            Intent data = result.getData();
+                            String category = data.getStringExtra(AddTransactionActivity.EXTRA_CATEGORY);
+                            String note = data.getStringExtra(AddTransactionActivity.EXTRA_NOTE);
+                            double amount = data.getDoubleExtra(AddTransactionActivity.EXTRA_AMOUNT, 0);
+                            String title = data.getStringExtra(AddTransactionActivity.EXTRA_TITLE);
+                            boolean isIncome = data.getBooleanExtra(AddTransactionActivity.EXTRA_IS_INCOME, false);
+
+                            // Try to update TransactionsFragment UI directly
                             if (viewPager != null) viewPager.setCurrentItem(2, true);
+                            ViewPagerAdapter vpAdapter = (ViewPagerAdapter) viewPager.getAdapter();
+                            if (vpAdapter != null) {
+                                Fragment f = vpAdapter.getFragment(2);
+                                if (f instanceof TransactionsFragment) {
+                                    TransactionsFragment tf = (TransactionsFragment) f;
+                                    // choose icon/title based on type
+                                    int icon = R.drawable.ic_transaction;
+                                    String displayTitle = title != null ? title : category;
+                                    if (isIncome) {
+                                        icon = R.drawable.ic_wallet;
+                                        if (displayTitle == null || displayTitle.isEmpty()) displayTitle = "Thu nhập";
+                                    } else {
+                                        if ("Ăn uống".equals(category)) icon = R.drawable.ic_food;
+                                        if ("Đi lại".equals(category)) icon = R.drawable.ic_transport;
+                                        if ("Mua sắm".equals(category)) icon = R.drawable.ic_shopping;
+                                        if ("Giải trí".equals(category)) icon = R.drawable.ic_entertainment;
+                                    }
+
+                                    Transaction tx = new Transaction(displayTitle, "now", amount, icon);
+                                    tf.addTransaction(tx);
+                                }
+                                // also refresh HomeFragment sums
+                                Fragment hf = vpAdapter.getFragment(0);
+                                if (hf instanceof HomeFragment) {
+                                    ((HomeFragment) hf).refreshData();
+                                }
+                            }
                         }
                     }
             );
