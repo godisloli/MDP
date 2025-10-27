@@ -1,9 +1,12 @@
 package net.tiramisu.mdp;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -37,6 +40,18 @@ public class StatisticsFragment extends Fragment {
 
             TransactionAdapter adapter = new TransactionAdapter(samples);
             rv.setAdapter(adapter);
+        }
+
+        // Wire the button to open the full-screen activity view
+        Button btn = view.findViewById(R.id.btnOpenMonthView);
+        TextView tvMonthTitle = view.findViewById(R.id.tvMonthTitle);
+        if (btn != null) {
+            btn.setOnClickListener(v -> {
+                Intent i = new Intent(requireContext(), ViewOneMonthActivity.class);
+                String label = (tvMonthTitle != null) ? tvMonthTitle.getText().toString() : null;
+                if (label != null) i.putExtra("EXTRA_MONTH_LABEL", label);
+                startActivity(i);
+            });
         }
     }
 }
