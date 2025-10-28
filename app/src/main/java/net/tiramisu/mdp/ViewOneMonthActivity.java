@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.github.mikephil.charting.charts.PieChart;
@@ -47,22 +46,6 @@ public class ViewOneMonthActivity extends AppCompatActivity {
             monthLabel = getString(R.string.current_month);
         }
         tvMonthTitle.setText(monthLabel);
-
-        // Sample transactions for the month (positive = income, negative = expense)
-        List<Transaction> samples = new ArrayList<>();
-        samples.add(new Transaction("Lương", "20-10-2025", 17000000, R.drawable.ic_wallet));
-        samples.add(new Transaction("Hóa đơn", "06-10-2025", -1500000, R.drawable.ic_bill));
-        samples.add(new Transaction("Di chuyển", "05-10-2025", -300000, R.drawable.ic_transport));
-        samples.add(new Transaction("Tiền thưởng", "01-10-2025", 500000, R.drawable.ic_wallet));
-
-        computeAndShowTotals(samples);
-
-        // Setup RecyclerView
-        rvMonthTransactions.setLayoutManager(new LinearLayoutManager(this));
-        TransactionAdapter adapter = new TransactionAdapter(samples);
-        rvMonthTransactions.setAdapter(adapter);
-
-        setupPieCharts(samples);
     }
 
     private void computeAndShowTotals(List<Transaction> list) {

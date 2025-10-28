@@ -22,7 +22,7 @@
             android:text="@string/welcome"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:textColor="@color/textPrimary"
+            android:textColor="@color/textHighlight"
             android:layout_marginBottom="8dp" />
 
         <!-- 🧾 Thẻ Số dư hiện tại -->

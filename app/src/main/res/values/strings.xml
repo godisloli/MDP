@@ -159,6 +159,8 @@
     <string name="zero_currency">0 ₫</string>
     <string name="month_chart_title">Biểu đồ chi tiêu theo ngày</string>
     <string name="transactions_label">Thống kê</string>
+    <string name="expense_by_category">Chi tiêu theo loại</string>
+    <string name="income_by_category">Thu nhập theo loại</string>
 
     <!-- Strings for Daily Reminder screen -->
     <string name="reminder_title">Nhắc chi tiêu</string>

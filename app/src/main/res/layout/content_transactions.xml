@@ -22,13 +22,21 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- include shared top summaries -->
-            <include layout="@layout/view_top_summaries" />
+            <!-- include shared top summaries (add top margin to push the card down) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="48dp">
+
+                <include layout="@layout/view_top_summaries" />
+
+            </LinearLayout>
 
             <!-- Spacer to move the top card and search components down slightly. Adjust height as needed. -->
             <View
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
+                android:layout_height="8dp"
                 android:background="@android:color/transparent" />
 
             <!-- Search -->
@@ -104,7 +112,7 @@
                     android:layout_height="wrap_content"
                     android:clipToPadding="false"
                     android:minHeight="200dp"
-                    android:nestedScrollingEnabled="false" />
+                    android:nestedScrollingEnabled="true" />
 
             </LinearLayout>
 
@@ -123,11 +131,11 @@
 
         </LinearLayout>
 
-        <!-- Bottom weighted spacer: increased to move content up further. -->
+        <!-- Bottom weighted spacer: reduced to move content up to better align with statistic header. -->
         <View
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="60"
+            android:layout_weight="8"
             android:background="@android:color/transparent" />
 
     </LinearLayout>

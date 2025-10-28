@@ -3,6 +3,9 @@ package net.tiramisu.mdp;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
+import android.widget.TextView;
+import android.view.View;
+import android.util.Log;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
@@ -21,10 +24,15 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String TAG = "MainActivity";
 
     private ViewPager2 viewPager;
     private BottomNavigationView bottomNav;
     private FloatingActionButton fabAdd;
+    // private View topSummariesContainer;
+
+    // top summary text views (fragments update the activity-level views directly)
+    // private TextView tvMonthTitleShared;
 
     // Activity Result launcher for AddTransactionActivity
     private ActivityResultLauncher<Intent> addTransactionLauncher;
@@ -65,6 +73,8 @@ public class MainActivity extends AppCompatActivity {
             viewPager = findViewById(R.id.viewPager);
             bottomNav = findViewById(R.id.bottomNav);
             fabAdd = findViewById(R.id.fabAdd);
+            // topSummariesContainer = findViewById(R.id.topSummariesContainer);
+            // tvMonthTitleShared = findViewById(R.id.tvMonthTitle);
 
             // Register the activity result launcher
             addTransactionLauncher = registerForActivityResult(
@@ -74,14 +84,16 @@ public class MainActivity extends AppCompatActivity {
                             // Extract transaction data
                             Intent data = result.getData();
                             String category = data.getStringExtra(AddTransactionActivity.EXTRA_CATEGORY);
-                            String note = data.getStringExtra(AddTransactionActivity.EXTRA_NOTE);
                             double amount = data.getDoubleExtra(AddTransactionActivity.EXTRA_AMOUNT, 0);
                             String title = data.getStringExtra(AddTransactionActivity.EXTRA_TITLE);
                             boolean isIncome = data.getBooleanExtra(AddTransactionActivity.EXTRA_IS_INCOME, false);
 
                             // Try to update TransactionsFragment UI directly
                             if (viewPager != null) viewPager.setCurrentItem(2, true);
-                            ViewPagerAdapter vpAdapter = (ViewPagerAdapter) viewPager.getAdapter();
+                            ViewPagerAdapter vpAdapter = null;
+                            if (viewPager != null && viewPager.getAdapter() != null) {
+                                vpAdapter = (ViewPagerAdapter) viewPager.getAdapter();
+                            }
                             if (vpAdapter != null) {
                                 Fragment f = vpAdapter.getFragment(2);
                                 if (f instanceof TransactionsFragment) {
@@ -143,6 +155,9 @@ public class MainActivity extends AppCompatActivity {
                     if (fabAdd != null) {
                         fabAdd.setVisibility((position == 0 || position == 2) ? FloatingActionButton.VISIBLE : FloatingActionButton.GONE);
                     }
+
+                    // keep BottomNav and FAB in sync with pager
+                    // (no shared summary behavior in the activity)
                 }
             });
 
@@ -153,9 +168,11 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
 
+            // No activity-level shared summaries to initialize
+
         } catch (Throwable t) {
             // Catch any unexpected startup errors, show a Toast and redirect to LoginActivity as a safe fallback
-            t.printStackTrace();
+            Log.e(TAG, "App initialization error", t);
             try {
                 File f = new File(getFilesDir(), "crash_main_oncreate.txt");
                 FileWriter fw = new FileWriter(f, true);
@@ -166,7 +183,7 @@ public class MainActivity extends AppCompatActivity {
                 pw.close();
                 fw.close();
             } catch (Exception e) {
-                // ignore file write failures
+                Log.w(TAG, "Failed to write crash file", e);
             }
             Toast.makeText(this, "App initialization error — redirecting to login.", Toast.LENGTH_LONG).show();
             try {

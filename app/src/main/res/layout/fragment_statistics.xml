@@ -4,13 +4,16 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Use vertical LinearLayout so only the RecyclerView portion scrolls -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:padding="16dp">
 
+        <!-- Header: month + summaries + charts -->
+        <include layout="@layout/view_statistic_header" />
+
+        <!-- Content (transactions list) -->
         <include layout="@layout/content_statistic_overview" />
 
     </LinearLayout>
@@ -25,6 +28,7 @@
         android:layout_margin="16dp"
         android:backgroundTint="#FFFFFF"
         android:textColor="#000000"
-        android:elevation="6dp" />
+        android:elevation="6dp"
+        app:layout_anchorGravity="bottom|end" />
 
 </FrameLayout>

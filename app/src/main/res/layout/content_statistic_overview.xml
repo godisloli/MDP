@@ -3,106 +3,7 @@
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <!-- include shared summaries -->
-    <include layout="@layout/view_top_summaries" />
-
-    <!-- Biểu đồ -->
-    <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:cardCornerRadius="12dp"
-        app:cardElevation="3dp"
-        android:layout_marginBottom="12dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#7EE7C8"
-            android:orientation="vertical"
-            android:padding="12dp">
-
-            <TextView
-                android:id="@+id/tvMonthChartTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="6dp"
-                android:text="@string/month_chart_title"
-                android:textColor="@color/textPrimary"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <!-- Two decorated pie chart cards: Expense (chi tiêu) and Income (thu nhập) -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
-                android:layout_marginTop="6dp"
-                android:layout_marginBottom="8dp"
-                android:background="#FFFFFF">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="12dp">
-
-                    <TextView
-                        android:id="@+id/tvPieExpenseTitle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Chi tiêu theo loại"
-                        android:textStyle="bold"
-                        android:textSize="14sp"
-                        android:textColor="@color/textPrimary"
-                        android:layout_marginBottom="8dp" />
-
-                    <com.github.mikephil.charting.charts.PieChart
-                        android:id="@+id/pieChartExpense"
-                        android:layout_width="match_parent"
-                        android:layout_height="220dp"
-                        android:background="#00FFFFFF" />
-                </LinearLayout>
-
-            </androidx.cardview.widget.CardView>
-
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
-                android:layout_marginTop="6dp"
-                android:layout_marginBottom="8dp"
-                android:background="#FFFFFF">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="12dp">
-
-                    <TextView
-                        android:id="@+id/tvPieIncomeTitle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Thu nhập theo loại"
-                        android:textStyle="bold"
-                        android:textSize="14sp"
-                        android:textColor="@color/textPrimary"
-                        android:layout_marginBottom="8dp" />
-
-                    <com.github.mikephil.charting.charts.PieChart
-                        android:id="@+id/pieChartIncome"
-                        android:layout_width="match_parent"
-                        android:layout_height="220dp"
-                        android:background="#00FFFFFF" />
-                </LinearLayout>
-
-            </androidx.cardview.widget.CardView>
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
-
-    <!-- Danh sách giao dịch -->
+    <!-- Danh sách giao dịch label (header moved to Activity AppBar) -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -111,13 +12,13 @@
         android:textStyle="bold"
         android:layout_marginBottom="8dp" />
 
-    <!-- Make RecyclerView occupy remaining space and add bottom padding to avoid nav overlap -->
+    <!-- RecyclerView: allow nested scrolling so the AppBar header above scrolls with it -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvMonthTransactions"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:nestedScrollingEnabled="false"
+        android:nestedScrollingEnabled="true"
         android:clipToPadding="false"
         android:paddingBottom="96dp"/>
 

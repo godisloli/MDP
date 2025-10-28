@@ -23,6 +23,7 @@ import net.tiramisu.mdp.model.TransactionEntity;
 import net.tiramisu.mdp.repo.TransactionRepository;
 
 import java.text.NumberFormat;
+import java.time.format.DateTimeFormatter;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Calendar;
@@ -74,6 +75,17 @@ public class TransactionsFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        // Ensure the month title is shown (the header is included in layouts for both tabs)
+        try {
+            LocalDate now = LocalDate.now();
+            TextView tvMonthTitle = view.findViewById(R.id.tvMonthTitle);
+            if (tvMonthTitle != null) {
+                tvMonthTitle.setText(now.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.forLanguageTag("vi-VN"))));
+                // not clickable in transactions screen, but ensure visible
+                tvMonthTitle.setVisibility(View.VISIBLE);
+            }
+        } catch (Exception ignored) {}
 
         repository = net.tiramisu.mdp.repo.TransactionRepository.getInstance(requireContext());
 
@@ -183,34 +195,54 @@ public class TransactionsFragment extends Fragment {
 
         long finalFrom = from, finalTo = to;
         String finalUserId = userId;
-        repository.getSumIncomeInRange(userId, finalFrom, finalTo, (Double income) -> {
-            repository.getSumExpenseInRange(finalUserId, finalFrom, finalTo, (Double expense) -> {
-                if (getActivity() == null) return;
-                // Prefer cached base balance from LiveData to avoid overwriting user-entered value
-                getActivity().runOnUiThread(() -> {
-                    NumberFormat fmt = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("vi-VN"));
-                    double inc = income == null ? 0.0 : income;
-                    double exp = expense == null ? 0.0 : expense;
-                    Double cached = null;
-                    try {
-                        cached = repository.getBaseBalanceLive(finalUserId).getValue();
-                    } catch (Exception ignored) {}
-                    if (cached != null) {
-                        double b = cached.doubleValue();
-                        Log.d("TransactionsFrag", "Using cached base for " + finalUserId + " = " + b);
-                        if (tvTotalIncome != null) tvTotalIncome.setText(fmt.format(inc));
-                        if (tvTotalExpense != null) tvTotalExpense.setText(fmt.format(Math.abs(exp)));
-                        if (tvMonthBalance != null) tvMonthBalance.setText(fmt.format(b + inc + exp));
-                    } else {
-                        Log.d("TransactionsFrag", "Cached base not available for " + finalUserId + "; falling back to storage");
-                        // fallback to reading storage if LiveData not yet initialized
-                        repository.getUserBaseBalance(finalUserId, (Double base) -> {
+        repository.getSumIncomeInRange(userId, finalFrom, finalTo, income -> {
+            repository.getSumExpenseInRange(finalUserId, finalFrom, finalTo, expense -> {
+                 if (getActivity() == null) return;
+                 // Prefer cached base balance from LiveData to avoid overwriting user-entered value
+                 getActivity().runOnUiThread(() -> {
+                     NumberFormat fmt = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("vi-VN"));
+                     double inc = income == null ? 0.0 : income;
+                     double exp = expense == null ? 0.0 : expense;
+                     Double cached = null;
+                     try {
+                         cached = repository.getBaseBalanceLive(finalUserId).getValue();
+                     } catch (Exception ignored) {}
+                     if (cached != null) {
+                         double b = cached;
+                         Log.d("TransactionsFrag", "Using cached base for " + finalUserId + " = " + b);
+                         if (tvTotalIncome != null) tvTotalIncome.setText(fmt.format(inc));
+                         if (tvTotalExpense != null) tvTotalExpense.setText(fmt.format(Math.abs(exp)));
+                         if (tvMonthBalance != null) tvMonthBalance.setText(fmt.format(b + inc + exp));
+                         // also set activity-level shared summaries if present
+                         if (getActivity() != null) {
+                             try {
+                                 TextView actInc = getActivity().findViewById(R.id.tvTotalIncome);
+                                 TextView actExp = getActivity().findViewById(R.id.tvTotalExpense);
+                                 TextView actBal = getActivity().findViewById(R.id.tvMonthBalance);
+                                 if (actInc != null) actInc.setText(fmt.format(inc));
+                                 if (actExp != null) actExp.setText(fmt.format(Math.abs(exp)));
+                                 if (actBal != null) actBal.setText(fmt.format(b + inc + exp));
+                             } catch (Exception ignored) {}
+                         }
+                     } else {
+                         Log.d("TransactionsFrag", "Cached base not available for " + finalUserId + "; falling back to storage");
+                         // fallback to reading storage if LiveData not yet initialized
+                         repository.getUserBaseBalance(finalUserId, (Double base) -> {
                             double b = base == null ? 0.0 : base;
                             if (getActivity() == null) return;
                             getActivity().runOnUiThread(() -> {
                                 if (tvTotalIncome != null) tvTotalIncome.setText(fmt.format(inc));
                                 if (tvTotalExpense != null) tvTotalExpense.setText(fmt.format(Math.abs(exp)));
                                 if (tvMonthBalance != null) tvMonthBalance.setText(fmt.format(b + inc + exp));
+                                // also update activity-level shared summaries
+                                try {
+                                    TextView actInc = getActivity().findViewById(R.id.tvTotalIncome);
+                                    TextView actExp = getActivity().findViewById(R.id.tvTotalExpense);
+                                    TextView actBal = getActivity().findViewById(R.id.tvMonthBalance);
+                                    if (actInc != null) actInc.setText(fmt.format(inc));
+                                    if (actExp != null) actExp.setText(fmt.format(Math.abs(exp)));
+                                    if (actBal != null) actBal.setText(fmt.format(b + inc + exp));
+                                } catch (Exception ignored) {}
                             });
                         });
                     }

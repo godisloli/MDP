@@ -11,6 +11,7 @@
 
     <color name="textPrimary">#212121</color>
     <color name="textSecondary">#757575</color>
+    <color name="textHighlight">#DE2C67</color>
     <color name="textDark">#1E293B</color>
 
     <color name="white">#FFFFFF</color>

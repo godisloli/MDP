@@ -225,6 +225,17 @@ public class StatisticsFragment extends Fragment {
                         if (tvTotalIncome != null) tvTotalIncome.setText(fmt.format(inc));
                         if (tvTotalExpense != null) tvTotalExpense.setText(fmt.format(Math.abs(exp)));
                         if (tvMonthBalance != null) tvMonthBalance.setText(fmt.format(b + inc + exp));
+                        // also update activity-level shared summaries if present
+                        if (getActivity() != null) {
+                            try {
+                                TextView actInc = getActivity().findViewById(R.id.tvTotalIncome);
+                                TextView actExp = getActivity().findViewById(R.id.tvTotalExpense);
+                                TextView actBal = getActivity().findViewById(R.id.tvMonthBalance);
+                                if (actInc != null) actInc.setText(fmt.format(inc));
+                                if (actExp != null) actExp.setText(fmt.format(Math.abs(exp)));
+                                if (actBal != null) actBal.setText(fmt.format(b + inc + exp));
+                            } catch (Exception ignored) {}
+                        }
                     } else {
                         android.util.Log.d("StatisticsFrag", "Cached base not available for " + effectiveUser + "; falling back to storage");
                         repository.getUserBaseBalance(effectiveUser, (Double base) -> {
@@ -234,6 +245,17 @@ public class StatisticsFragment extends Fragment {
                                 if (tvTotalIncome != null) tvTotalIncome.setText(fmt.format(inc));
                                 if (tvTotalExpense != null) tvTotalExpense.setText(fmt.format(Math.abs(exp)));
                                 if (tvMonthBalance != null) tvMonthBalance.setText(fmt.format(b + inc + exp));
+                                // also update activity-level shared summaries
+                                if (getActivity() != null) {
+                                    try {
+                                        TextView actInc = getActivity().findViewById(R.id.tvTotalIncome);
+                                        TextView actExp = getActivity().findViewById(R.id.tvTotalExpense);
+                                        TextView actBal = getActivity().findViewById(R.id.tvMonthBalance);
+                                        if (actInc != null) actInc.setText(fmt.format(inc));
+                                        if (actExp != null) actExp.setText(fmt.format(Math.abs(exp)));
+                                        if (actBal != null) actBal.setText(fmt.format(b + inc + exp));
+                                    } catch (Exception ignored) {}
+                                }
                             });
                         });
                     }
