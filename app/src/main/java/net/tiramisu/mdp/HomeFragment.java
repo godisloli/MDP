@@ -240,39 +240,62 @@ public class HomeFragment extends Fragment {
         final EditText input = new EditText(requireContext());
         input.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL | InputType.TYPE_NUMBER_FLAG_SIGNED);
         NumberFormat fmt = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("vi-VN"));
+        // Show the displayed total (base + current month net) as hint to the user, because the user
+        // expects to edit the visible total. Compute net asynchronously and update the hint when ready.
+        final String targetUserForHint = (uid != null && !uid.isEmpty()) ? uid : "local";
         input.setHint(fmt.format(currentBaseBalance));
+        computeCurrentMonthNet(targetUserForHint, (Double net) -> {
+            double netVal = net == null ? 0.0 : net;
+            final double displayed = currentBaseBalance + netVal;
+            if (getActivity() != null) getActivity().runOnUiThread(() -> input.setHint(fmt.format(displayed)));
+        });
         b.setView(input);
         b.setPositiveButton("Lưu", (DialogInterface dialog, int which) -> {
             String s = input.getText() == null ? "" : input.getText().toString().trim();
             double v = 0.0;
             try { v = Double.parseDouble(s.replaceAll("[^0-9.-]", "")); } catch (Exception ignored) {}
             // update either Firestore or SharedPreferences
-            if (uid != null && !uid.isEmpty()) {
-                FirebaseFirestore db = FirebaseFirestore.getInstance();
-                double finalV = v;
-                // use set with merge to avoid overwriting other fields
-                Map<String, Object> update = new HashMap<>();
-                update.put("balance", v);
-                db.collection("users").document(uid).set(update, SetOptions.merge())
-                        .addOnSuccessListener(aVoid -> {
-                            currentBaseBalance = finalV;
-                            // refresh monthly sums and recent to update displayed balance
-                            loadMonthlySums(uid);
-                            loadRecent(uid);
-                        })
-                        .addOnFailureListener(e -> {
-                            // fallback: save local copy but still refresh using the user's id
-                            saveLocalBalance(finalV);
-                            currentBaseBalance = finalV;
-                            loadMonthlySums(uid);
-                            loadRecent(uid);
-                        });
-            } else {
-                saveLocalBalance(v);
-                currentBaseBalance = v;
-                loadMonthlySums("local");
-                loadRecent("local");
-            }
+            // We interpret the user's input `v` as the desired displayed total balance (base + net_month).
+            // To persist properly we need to store the base balance = v - net_month, so later when sums are
+            // added the displayed value equals what the user entered.
+            final double enteredDisplayed = v;
+            final String targetUser = (uid != null && !uid.isEmpty()) ? uid : "local";
+
+            computeCurrentMonthNet(targetUser, (Double net) -> {
+                double netVal = net == null ? 0.0 : net;
+                double baseToStore = enteredDisplayed - netVal;
+
+                if (targetUser.equals("local")) {
+                    saveLocalBalance(baseToStore);
+                    currentBaseBalance = baseToStore;
+                    if (getActivity() != null) getActivity().runOnUiThread(() -> {
+                        loadMonthlySums("local");
+                        loadRecent("local");
+                    });
+                } else {
+                    FirebaseFirestore db = FirebaseFirestore.getInstance();
+                    Map<String, Object> update = new HashMap<>();
+                    update.put("balance", baseToStore);
+                    db.collection("users").document(targetUser).set(update, SetOptions.merge())
+                            .addOnSuccessListener(aVoid -> {
+                                currentBaseBalance = baseToStore;
+                                // refresh UI on main thread
+                                if (getActivity() != null) getActivity().runOnUiThread(() -> {
+                                    loadMonthlySums(targetUser);
+                                    loadRecent(targetUser);
+                                });
+                            })
+                            .addOnFailureListener(e -> {
+                                // fallback: persist locally but still update UI
+                                saveLocalBalance(baseToStore);
+                                currentBaseBalance = baseToStore;
+                                if (getActivity() != null) getActivity().runOnUiThread(() -> {
+                                    loadMonthlySums(targetUser);
+                                    loadRecent(targetUser);
+                                });
+                            });
+                }
+            });
         });
         b.setNegativeButton("Hủy", (DialogInterface dialog, int which) -> dialog.dismiss());
         b.show();
@@ -283,5 +306,38 @@ public class HomeFragment extends Fragment {
         SharedPreferences.Editor ed = sp.edit();
         ed.putLong("local_balance_bits", Double.doubleToLongBits(v));
         ed.apply();
+    }
+
+    // Explanation: add helper to compute the net change (income + expense) for the current month
+    // so we can correctly compute displayed balance = base balance + net-of-month when user edits base.
+    private void computeCurrentMonthNet(String userId, java.util.function.Consumer<Double> callback) {
+        long from, to;
+        try {
+            LocalDate now = LocalDate.now();
+            LocalDate start = now.withDayOfMonth(1);
+            LocalDate end = now.withDayOfMonth(now.lengthOfMonth());
+            from = start.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli();
+            to = end.atTime(23,59,59).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        } catch (Exception ex) {
+            Calendar cal = Calendar.getInstance();
+            cal.set(Calendar.DAY_OF_MONTH, 1);
+            cal.set(Calendar.HOUR_OF_DAY, 0); cal.set(Calendar.MINUTE, 0); cal.set(Calendar.SECOND,0); cal.set(Calendar.MILLISECOND,0);
+            from = cal.getTimeInMillis();
+            cal.set(Calendar.DAY_OF_MONTH, cal.getActualMaximum(Calendar.DAY_OF_MONTH));
+            cal.set(Calendar.HOUR_OF_DAY,23); cal.set(Calendar.MINUTE,59); cal.set(Calendar.SECOND,59);
+            to = cal.getTimeInMillis();
+        }
+
+        final long finalFrom = from;
+        final long finalTo = to;
+        // use repository methods to fetch income and expense and combine them
+        repository.getSumIncomeInRange(userId, finalFrom, finalTo, (Double income) -> {
+            repository.getSumExpenseInRange(userId, finalFrom, finalTo, (Double expense) -> {
+                double inc = income == null ? 0.0 : income;
+                double exp = expense == null ? 0.0 : expense; // expense may be negative in DB
+                double net = inc + exp;
+                if (callback != null) callback.accept(net);
+            });
+        });
     }
 }

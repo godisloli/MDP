@@ -80,4 +80,22 @@ public class TransactionRepository {
             if (callback != null) callback.accept(res);
         });
     }
+
+    // Get sums grouped by category in a time range
+    public void getCategorySumsInRange(final String userId, final long from, final long to, final Consumer<List<net.tiramisu.mdp.model.CategorySum>> callback) {
+        executor.execute(() -> {
+            List<net.tiramisu.mdp.model.CategorySum> res = null;
+            try { res = dao.getCategorySumsInRange(userId, from, to); } catch (Exception ignored) {}
+            if (callback != null) callback.accept(res);
+        });
+    }
+
+    // Get earliest transaction timestamp for a user
+    public void getMinTimestampForUser(final String userId, final Consumer<Long> callback) {
+        executor.execute(() -> {
+            Long v = null;
+            try { v = dao.getMinTimestampForUser(userId); } catch (Exception ignored) {}
+            if (callback != null) callback.accept(v);
+        });
+    }
 }

@@ -131,7 +131,7 @@
     <string name="sample_expense">-5.100.000 ₫</string>
 
     <!-- Strings used by activity_transaction_detail.xml -->
-    <string name="transaction_detail_title">Chi ti���t giao dịch</string>
+    <string name="transaction_detail_title">Chi tiết giao dịch</string>
     <string name="transaction_sample_title">Bữa trưa</string>
     <string name="transaction_sample_date">01/10/2025 · 12:30</string>
     <string name="chip_type_expense">Chi tiêu</string>
@@ -158,7 +158,7 @@
     <string name="month_balance_label">Số dư</string>
     <string name="zero_currency">0 ₫</string>
     <string name="month_chart_title">Biểu đồ chi tiêu theo ngày</string>
-    <string name="transactions_label">Giao dịch</string>
+    <string name="transactions_label">Thống kê</string>
 
     <!-- Strings for Daily Reminder screen -->
     <string name="reminder_title">Nhắc chi tiêu</string>
