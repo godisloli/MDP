@@ -21,26 +21,15 @@
             android:background="@android:color/transparent"/>
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Nội dung cuộn -->
-    <androidx.core.widget.NestedScrollView
-        android:id="@+id/scroll"
+    <!-- Use a LinearLayout with appbar scrolling behavior so the included content can layout weights -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:orientation="vertical"
         android:padding="16dp"
-        android:paddingBottom="120dp"
-        android:clipToPadding="false"
-        android:scrollbars="none">
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <!-- Ensure NestedScrollView has exactly one direct child: wrap the included merge layout -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
+        <include layout="@layout/content_statistic_overview" />
 
-            <include layout="@layout/content_statistic_overview" />
-
-        </LinearLayout>
-
-    </androidx.core.widget.NestedScrollView>
+    </LinearLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.InputType;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -48,6 +49,12 @@ public class HomeFragment extends Fragment {
 
     public HomeFragment() {}
 
+    // listener to refresh data when transactions change
+    private final Runnable repoListener = () -> {
+        if (getActivity() == null) return;
+        getActivity().runOnUiThread(this::refreshData);
+    };
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -63,7 +70,7 @@ public class HomeFragment extends Fragment {
         tvExpense = view.findViewById(R.id.tvExpense);
         rvRecent = view.findViewById(R.id.rvRecent);
 
-        repository = new TransactionRepository(requireContext());
+        repository = net.tiramisu.mdp.repo.TransactionRepository.getInstance(requireContext());
 
         // prepare recent recycler
         if (rvRecent != null) {
@@ -82,6 +89,8 @@ public class HomeFragment extends Fragment {
         } else {
             uid = null;
         }
+        // capture uid as effectively final for use in lambdas
+        final String targetUid = uid;
 
         if (tvUserEmail != null) {
             if (email != null && !email.isEmpty()) {
@@ -93,16 +102,17 @@ public class HomeFragment extends Fragment {
 
         // make balance editable on tap
         if (tvBalance != null) {
-            tvBalance.setOnClickListener(v -> showEditBalanceDialog(uid));
+            tvBalance.setOnClickListener(v -> showEditBalanceDialog(targetUid));
         }
 
-        if (uid != null && !uid.isEmpty()) {
+        if (targetUid != null && !targetUid.isEmpty()) {
             // migrate any local transactions into the user account so sums and recent list are preserved
-            repository.migrateUserId("local", uid, () -> {
-                // after migration, load base balance and sums and recent
-                loadUserBaseBalance(uid);
-                loadMonthlySums(uid);
-                loadRecent(uid);
+            repository.migrateUserId("local", targetUid, () -> {
+                // after migration, load base balance and then load sums and recent
+                loadUserBaseBalance(targetUid, () -> {
+                    loadMonthlySums(targetUid);
+                    loadRecent(targetUid);
+                });
             });
         } else {
             // load local balance from SharedPreferences
@@ -114,6 +124,26 @@ public class HomeFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (repository != null) repository.registerChangeListener(repoListener);
+        // ensure we refresh when returning to this fragment (catch missed changes)
+        refreshData();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (repository != null) repository.unregisterChangeListener(repoListener);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        refreshData();
+    }
+
     public void refreshData() {
         String uid = null;
         try {
@@ -122,11 +152,41 @@ public class HomeFragment extends Fragment {
             }
         } catch (Exception ignored) {}
 
+        final String targetUid = uid;
+        Log.d("HomeFrag", "refreshData() called, uid=" + targetUid + ", currentBaseBalance=" + currentBaseBalance);
+
         if (uid != null && !uid.isEmpty()) {
-            loadUserBaseBalance(uid);
-            loadMonthlySums(uid);
-            loadRecent(uid);
+            // Prefer cached base (LiveData) or recently-manually-set base to avoid a race where
+            // a remote fetch (that may still be propagating) overwrites the user's entered value.
+            try {
+                Double cached = null;
+                try { cached = repository.getBaseBalanceLive(targetUid).getValue(); } catch (Exception ignored) {}
+                if (cached != null) {
+                    currentBaseBalance = cached;
+                    updateBalanceDisplay(currentBaseBalance);
+                    loadMonthlySums(targetUid);
+                    loadRecent(targetUid);
+                } else if (repository != null && repository.wasManuallyUpdatedRecently(targetUid, 5000)) {
+                    // use the in-memory currentBaseBalance (set when user saved) and refresh UI
+                    updateBalanceDisplay(currentBaseBalance);
+                    loadMonthlySums(targetUid);
+                    loadRecent(targetUid);
+                } else {
+                    // no cached value and no recent manual update -> fetch from Firestore
+                    loadUserBaseBalance(targetUid, () -> {
+                        loadMonthlySums(targetUid);
+                        loadRecent(targetUid);
+                    });
+                }
+            } catch (Exception ex) {
+                // fallback to the previous behavior on any error
+                loadUserBaseBalance(targetUid, () -> {
+                    loadMonthlySums(targetUid);
+                    loadRecent(targetUid);
+                });
+            }
         } else {
+            // load local balance from SharedPreferences
             SharedPreferences sp = requireContext().getSharedPreferences("mdp_local", Context.MODE_PRIVATE);
             currentBaseBalance = Double.longBitsToDouble(sp.getLong("local_balance_bits", Double.doubleToLongBits(0.0)));
             updateBalanceDisplay(currentBaseBalance);
@@ -187,6 +247,7 @@ public class HomeFragment extends Fragment {
                 if (getActivity() == null) return;
                 getActivity().runOnUiThread(() -> {
                     NumberFormat fmt = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("vi-VN"));
+                    Log.d("HomeFrag", "loadMonthlySums results: income=" + income + " expense=" + expense + " base=" + currentBaseBalance);
                     if (tvIncome != null) tvIncome.setText(fmt.format(income == null ? 0.0 : income));
                     if (tvExpense != null) tvExpense.setText(fmt.format(Math.abs(expense == null ? 0.0 : expense)));
                     // also update balance display: base + net change this month
@@ -197,10 +258,18 @@ public class HomeFragment extends Fragment {
         });
     }
 
-    private void loadUserBaseBalance(String uid) {
+    // Load base balance for a user from Firestore. If 'after' is non-null, call it after loading (success or failure).
+    private void loadUserBaseBalance(String uid, Runnable after) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("users").document(uid).get()
                 .addOnSuccessListener((DocumentSnapshot doc) -> {
+                    // if the user recently manually updated the base, prefer that and do not overwrite
+                    if (repository != null && repository.wasManuallyUpdatedRecently(uid, 5000)) {
+                        Log.d("HomeFrag", "loadUserBaseBalance: skipping overwrite because manual update recent for uid=" + uid);
+                        if (after != null) after.run();
+                        return;
+                    }
+
                     if (doc == null || !doc.exists()) {
                         currentBaseBalance = 0.0;
                     } else {
@@ -208,10 +277,19 @@ public class HomeFragment extends Fragment {
                         currentBaseBalance = parseNumber(balanceObj);
                     }
                     updateBalanceDisplay(currentBaseBalance);
+                    Log.d("HomeFrag", "loadUserBaseBalance success: base=" + currentBaseBalance + " uid=" + uid);
+                    if (after != null) after.run();
                 })
                 .addOnFailureListener(e -> {
+                    if (repository != null && repository.wasManuallyUpdatedRecently(uid, 5000)) {
+                        Log.d("HomeFrag", "loadUserBaseBalance failed but manual update recent, skipping overwrite for uid=" + uid);
+                        if (after != null) after.run();
+                        return;
+                    }
                     currentBaseBalance = 0.0;
                     updateBalanceDisplay(currentBaseBalance);
+                    Log.d("HomeFrag", "loadUserBaseBalance failed for uid=" + uid + ", err=" + e.getMessage());
+                    if (after != null) after.run();
                 });
     }
 
@@ -268,27 +346,30 @@ public class HomeFragment extends Fragment {
                 if (targetUser.equals("local")) {
                     saveLocalBalance(baseToStore);
                     currentBaseBalance = baseToStore;
+                    if (repository != null) { repository.setCachedBaseBalance("local", baseToStore); repository.notifyChange(); }
                     if (getActivity() != null) getActivity().runOnUiThread(() -> {
                         loadMonthlySums("local");
                         loadRecent("local");
                     });
                 } else {
+                    // Immediately update cached base so UI shows the user's entered value while Firestore write runs
+                    currentBaseBalance = baseToStore;
+                    if (repository != null) { repository.setCachedBaseBalance(targetUser, baseToStore); repository.notifyChange(); }
+
                     FirebaseFirestore db = FirebaseFirestore.getInstance();
                     Map<String, Object> update = new HashMap<>();
                     update.put("balance", baseToStore);
                     db.collection("users").document(targetUser).set(update, SetOptions.merge())
                             .addOnSuccessListener(aVoid -> {
-                                currentBaseBalance = baseToStore;
-                                // refresh UI on main thread
+                                // already cached and currentBaseBalance set; just refresh UI
                                 if (getActivity() != null) getActivity().runOnUiThread(() -> {
                                     loadMonthlySums(targetUser);
                                     loadRecent(targetUser);
                                 });
                             })
                             .addOnFailureListener(e -> {
-                                // fallback: persist locally but still update UI
+                                // fallback: persist locally but still keep cached value
                                 saveLocalBalance(baseToStore);
-                                currentBaseBalance = baseToStore;
                                 if (getActivity() != null) getActivity().runOnUiThread(() -> {
                                     loadMonthlySums(targetUser);
                                     loadRecent(targetUser);

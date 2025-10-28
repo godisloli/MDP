@@ -7,12 +7,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.github.mikephil.charting.charts.BarChart;
-import com.github.mikephil.charting.components.XAxis;
-import com.github.mikephil.charting.data.BarData;
-import com.github.mikephil.charting.data.BarDataSet;
-import com.github.mikephil.charting.data.BarEntry;
-import com.github.mikephil.charting.formatter.IndexAxisValueFormatter;
+import com.github.mikephil.charting.charts.PieChart;
+import com.github.mikephil.charting.data.PieData;
+import com.github.mikephil.charting.data.PieDataSet;
+import com.github.mikephil.charting.data.PieEntry;
+import com.github.mikephil.charting.formatter.PercentFormatter;
+import com.github.mikephil.charting.utils.ColorTemplate;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -26,7 +26,8 @@ public class ViewOneMonthActivity extends AppCompatActivity {
     private TextView tvTotalIncome;
     private TextView tvTotalExpense;
     private TextView tvMonthBalance;
-    private BarChart barChartMonth;
+    private PieChart pieChartExpense;
+    private PieChart pieChartIncome;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,7 +39,8 @@ public class ViewOneMonthActivity extends AppCompatActivity {
         tvTotalExpense = findViewById(R.id.tvTotalExpense);
         tvMonthBalance = findViewById(R.id.tvMonthBalance);
         RecyclerView rvMonthTransactions = findViewById(R.id.rvMonthTransactions);
-        barChartMonth = findViewById(R.id.barChartMonth);
+        pieChartExpense = findViewById(R.id.pieChartExpense);
+        pieChartIncome = findViewById(R.id.pieChartIncome);
 
         String monthLabel = getIntent().getStringExtra("EXTRA_MONTH_LABEL");
         if (monthLabel == null || monthLabel.isEmpty()) {
@@ -60,7 +62,7 @@ public class ViewOneMonthActivity extends AppCompatActivity {
         TransactionAdapter adapter = new TransactionAdapter(samples);
         rvMonthTransactions.setAdapter(adapter);
 
-        setupExpenseChart(samples);
+        setupPieCharts(samples);
     }
 
     private void computeAndShowTotals(List<Transaction> list) {
@@ -77,47 +79,58 @@ public class ViewOneMonthActivity extends AppCompatActivity {
         tvMonthBalance.setText(fmt.format(income - expense));
     }
 
-    private void setupExpenseChart(List<Transaction> transactions) {
-        // Giả sử chia expense theo tuần (4 tuần), bạn có thể thay đổi logic này theo dữ liệu thực tế
-        float[] weekExpense = new float[4];
+    private void setupPieCharts(List<Transaction> transactions) {
+        // Aggregate by category into expense and income maps
+        java.util.Map<String, Double> expenseMap = new java.util.HashMap<>();
+        java.util.Map<String, Double> incomeMap = new java.util.HashMap<>();
         for (Transaction t : transactions) {
-            if (t.amount < 0) {
-                // Phân bổ tuần dựa trên ngày (giả định dd-MM-yyyy)
-                int day = 1;
-                try {
-                    String[] parts = t.date.split("-");
-                    day = Integer.parseInt(parts[0]);
-                } catch (Exception ignored) {}
-                int weekIdx = Math.min((day - 1) / 7, 3);
-                // t.amount is negative for expenses; use Math.abs and cast to float to avoid lossy implicit casts
-                weekExpense[weekIdx] += (float) Math.abs(t.amount);
+            String cat = t.title == null ? "Khác" : t.title;
+            double v = t.amount;
+            if (v < 0) {
+                expenseMap.put(cat, expenseMap.getOrDefault(cat, 0.0) + Math.abs(v));
+            } else if (v > 0) {
+                incomeMap.put(cat, incomeMap.getOrDefault(cat, 0.0) + v);
             }
         }
-        List<BarEntry> entries = new ArrayList<>();
-        for (int i = 0; i < 4; i++) {
-            entries.add(new BarEntry(i, weekExpense[i]));
+
+        // populate both charts
+        populatePie(pieChartExpense, expenseMap, "Chi tiêu");
+        populatePie(pieChartIncome, incomeMap, "Thu nhập");
+    }
+
+    private void populatePie(PieChart chart, java.util.Map<String, Double> map, String centerText) {
+        if (chart == null) return;
+        if (map == null || map.isEmpty()) {
+            chart.clear();
+            chart.setCenterText("Không có dữ liệu");
+            chart.invalidate();
+            return;
         }
-        BarDataSet set = new BarDataSet(entries, "Chi tiêu (₫)");
-        set.setColor(Color.parseColor("#FF7043"));
-        set.setValueTextColor(Color.DKGRAY);
+        List<PieEntry> entries = new ArrayList<>();
+        double total = 0.0;
+        for (Double v : map.values()) total += (v == null ? 0.0 : v);
+        for (java.util.Map.Entry<String, Double> e : map.entrySet()) {
+            double val = e.getValue() == null ? 0.0 : e.getValue();
+            if (val <= 0) continue;
+            entries.add(new PieEntry((float) val, e.getKey()));
+        }
+
+        PieDataSet set = new PieDataSet(entries, "");
+        ArrayList<Integer> colors = new ArrayList<>();
+        for (int c : ColorTemplate.MATERIAL_COLORS) colors.add(c);
+        for (int c : ColorTemplate.VORDIPLOM_COLORS) colors.add(c);
+        set.setColors(colors);
+        set.setValueTextColor(Color.WHITE);
         set.setValueTextSize(12f);
-        BarData data = new BarData(set);
-        data.setBarWidth(0.6f);
-        barChartMonth.setData(data);
-        List<String> labels = new ArrayList<>();
-        labels.add("Tuần 1");
-        labels.add("Tuần 2");
-        labels.add("Tuần 3");
-        labels.add("Tuần 4");
-        XAxis xAxis = barChartMonth.getXAxis();
-        xAxis.setValueFormatter(new IndexAxisValueFormatter(labels));
-        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-        xAxis.setDrawGridLines(false);
-        xAxis.setGranularity(1f);
-        barChartMonth.getDescription().setEnabled(false);
-        barChartMonth.setDrawGridBackground(false);
-        barChartMonth.setFitBars(true);
-        barChartMonth.animateY(700);
-        barChartMonth.invalidate();
+
+        PieData data = new PieData(set);
+        data.setValueFormatter(new PercentFormatter(chart));
+        chart.setData(data);
+        chart.setCenterText(centerText + "\n(%)");
+        chart.setUsePercentValues(true);
+        chart.setDrawEntryLabels(false);
+        chart.getDescription().setEnabled(false);
+        chart.animateY(700);
+        chart.invalidate();
     }
 }

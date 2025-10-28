@@ -46,7 +46,7 @@ public class AddTransactionActivity extends AppCompatActivity {
         Button btnSave = findViewById(R.id.btnSaveTransaction);
         Button btnCancel = findViewById(R.id.btnCancelTransaction);
 
-        repository = new TransactionRepository(getApplicationContext());
+        repository = net.tiramisu.mdp.repo.TransactionRepository.getInstance(getApplicationContext());
 
         // simple categories
         String[] categories = new String[]{"Ăn uống", "Đi lại", "Mua sắm", "Học tập", "Giải trí", "Khác"};

@@ -17,10 +17,21 @@ import java.util.Locale;
 
 public class CategorySumAdapter extends RecyclerView.Adapter<CategorySumAdapter.VH> {
     private List<CategorySum> items;
+    private double totalSum = 0.0;
 
-    public CategorySumAdapter(List<CategorySum> items) { this.items = items; }
+    public CategorySumAdapter(List<CategorySum> items) { this.items = items; recalcTotal(); }
 
-    public void setItems(List<CategorySum> items) { this.items = items; notifyDataSetChanged(); }
+    public void setItems(List<CategorySum> items) { this.items = items; recalcTotal(); notifyDataSetChanged(); }
+
+    private void recalcTotal() {
+        double s = 0.0;
+        if (items != null) {
+            for (CategorySum cs : items) {
+                if (cs != null && cs.total != null) s += Math.abs(cs.total);
+            }
+        }
+        totalSum = s;
+    }
 
     @NonNull
     @Override
@@ -37,19 +48,24 @@ public class CategorySumAdapter extends RecyclerView.Adapter<CategorySumAdapter.
         NumberFormat fmt = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("vi-VN"));
         double val = s.total == null ? 0.0 : s.total;
         holder.tvAmount.setText(fmt.format(val));
-        // color by sign (use existing color resources)
+        // color by sign
         int colorRes = (val < 0) ? R.color.red : R.color.green;
         int color = ContextCompat.getColor(holder.itemView.getContext(), colorRes);
         holder.tvAmount.setTextColor(color);
 
-        // placeholder percent: we don't have total of all categories here; caller can compute and set if desired
-        holder.tvPercent.setText(" ");
+        // percent of total (absolute values)
+        String pct = "0%";
+        if (totalSum > 0.0001) {
+            double p = (Math.abs(val) / totalSum) * 100.0;
+            pct = String.format(Locale.getDefault(), "%.0f%%", p);
+        }
+        holder.tvPercent.setText(pct);
     }
 
     @Override
     public int getItemCount() { return items == null ? 0 : items.size(); }
 
-    static class VH extends RecyclerView.ViewHolder {
+    public static class VH extends RecyclerView.ViewHolder {
         android.widget.ImageView ivIcon;
         TextView tvCategory, tvPercent, tvAmount;
         VH(@NonNull View itemView) {
