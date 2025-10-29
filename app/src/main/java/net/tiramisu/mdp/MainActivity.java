@@ -28,6 +28,8 @@ public class MainActivity extends AppCompatActivity {
     private ViewPager2 viewPager;
     private BottomNavigationView bottomNav;
     private FloatingActionButton fabAdd;
+    // track whether Firebase initialized successfully so catch() can decide how to handle failures
+    private boolean firebaseAvailable = false;
     // private View topSummariesContainer;
 
     // top summary text views (fragments update the activity-level views directly)
@@ -46,29 +48,35 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         try {
-            // Ensure Firebase is initialized before using FirebaseAuth
+            // Ensure Firebase is initialized. If initialization fails, continue in local mode
             try {
                 FirebaseApp.initializeApp(this);
+                firebaseAvailable = true;
             } catch (Exception ex) {
-                // If Firebase fails to initialize, continue but avoid calling FirebaseAuth
+                firebaseAvailable = false;
+                Log.w(TAG, "Firebase initialization failed, continuing in local mode", ex);
             }
 
-            // If there's no authenticated user, redirect to LoginActivity immediately
-            try {
-                if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            // Only check FirebaseAuth if Firebase initialized successfully. Otherwise allow local (anonymous) mode.
+            if (firebaseAvailable) {
+                try {
+                    if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+                        Intent i = new Intent(MainActivity.this, LoginActivity.class);
+                        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(i);
+                        finish();
+                        return;
+                    }
+                } catch (Exception ex) {
+                    Log.w(TAG, "FirebaseAuth check failed, redirecting to LoginActivity", ex);
                     Intent i = new Intent(MainActivity.this, LoginActivity.class);
                     i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(i);
                     finish();
                     return;
                 }
-            } catch (Exception ex) {
-                // If FirebaseAuth is not available or throws, redirect to LoginActivity as a safe fallback
-                Intent i = new Intent(MainActivity.this, LoginActivity.class);
-                i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(i);
-                finish();
-                return;
+            } else {
+                Log.i(TAG, "Firebase unavailable: running in local mode without login");
             }
 
             EdgeToEdge.enable(this);
@@ -208,13 +216,21 @@ public class MainActivity extends AppCompatActivity {
             } catch (Exception e) {
                 Log.w(TAG, "Failed to write crash file", e);
             }
-            Toast.makeText(this, "App initialization error — redirecting to login.", Toast.LENGTH_LONG).show();
-            try {
-                Intent i = new Intent(MainActivity.this, LoginActivity.class);
-                i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(i);
-            } catch (Exception ignored) {}
-            finish();
+            // If Firebase is available then redirecting to LoginActivity is a reasonable fallback.
+            // If Firebase is not available, avoid redirect loops by not launching LoginActivity automatically.
+            if (firebaseAvailable) {
+                Toast.makeText(this, "App initialization error — redirecting to login.", Toast.LENGTH_LONG).show();
+                try {
+                    Intent i = new Intent(MainActivity.this, LoginActivity.class);
+                    i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(i);
+                } catch (Exception ignored) {}
+                finish();
+            } else {
+                // Inform the user and stay on the current screen so they can try again or continue in local mode
+                Toast.makeText(this, "App initialization error — running in local mode.", Toast.LENGTH_LONG).show();
+                // Do not finish(); avoid redirect loop.
+            }
         }
     }
 

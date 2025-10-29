@@ -28,6 +28,7 @@ public class LoginActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private FirebaseAuth mAuth;
     private TextView tvForgotPassword;
+    private boolean firebaseAvailable = false;
 
     @Override
     protected void attachBaseContext(Context newBase) {
@@ -39,9 +40,17 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        FirebaseApp.initializeApp(this);
+        // Initialize Firebase if available. If initialization fails, continue in local mode.
+        try {
+            FirebaseApp.initializeApp(this);
+            firebaseAvailable = true;
+        } catch (Exception ex) {
+            firebaseAvailable = false;
+            // don't crash — app will run in local mode
+            android.util.Log.w("LoginActivity", "Firebase initialization failed, running in local mode", ex);
+        }
 
-        mAuth = FirebaseAuth.getInstance();
+        mAuth = firebaseAvailable ? FirebaseAuth.getInstance() : null;
 
         initViews();
     }
@@ -49,9 +58,12 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser != null) {
-            startMain();
+        // Only auto-start main activity when Firebase is available and an authenticated user exists.
+        if (firebaseAvailable && mAuth != null) {
+            try {
+                FirebaseUser currentUser = mAuth.getCurrentUser();
+                if (currentUser != null) startMain();
+            } catch (Exception ignored) {}
         }
     }
 
@@ -178,8 +190,8 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        if (mAuth == null) {
-            Toast.makeText(this, "Firebase not initialized", Toast.LENGTH_LONG).show();
+        if (!firebaseAvailable || mAuth == null) {
+            Toast.makeText(this, "Firebase not available — cannot login", Toast.LENGTH_LONG).show();
             return;
         }
 
