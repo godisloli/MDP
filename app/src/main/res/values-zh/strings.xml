@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App basics -->
+    <string name="app_name">支出管理器</string>
+    <string name="app_logo">应用标志</string>
+    <string name="app_tagline">轻松管理您的个人财务</string>
+    <string name="copy_right">© 2025 支出管理器。保留所有权利。</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">首页</string>
+    <string name="nav_chart">统计</string>
+    <string name="nav_transactions">交易</string>
+    <string name="nav_settings">设置</string>
+
+    <!-- Common -->
+    <string name="ok">确定</string>
+    <string name="cancel">取消</string>
+    <string name="change">更改</string>
+    <string name="save">保存</string>
+    <string name="delete">删除</string>
+    <string name="edit">编辑</string>
+    <string name="add">添加</string>
+    <string name="search">搜索</string>
+
+    <!-- Login/Register -->
+    <string name="email_hint">电子邮件</string>
+    <string name="password_hint">密码</string>
+    <string name="full_name_hint">全名</string>
+    <string name="confirm_password_hint">确认密码</string>
+    <string name="login">登录</string>
+    <string name="register">注册</string>
+    <string name="logout">退出</string>
+    <string name="forgot_password">忘记密码？</string>
+    <string name="forgot_password_title">忘记密码</string>
+    <string name="forgot_password_instruction">输入您的电子邮件以接收密码重置链接</string>
+    <string name="forgot_password_link">忘记密码？</string>
+    <string name="send_reset_link">发送重置链接</string>
+    <string name="back_to_login">返回登录</string>
+    <string name="confirm_password">确认密码</string>
+    <string name="enter_valid_email">请输入有效的电子邮件</string>
+    <string name="no_network">无网络连接</string>
+    <string name="firebase_not_initialized">Firebase 未初始化</string>
+    <string name="check_email_reset">请检查您的电子邮件以获取重置链接</string>
+    <string name="failed_send_reset">发送重置电子邮件失败</string>
+    <string name="error_prefix">错误：%s</string>
+
+    <!-- Settings -->
+    <string name="settings">设置</string>
+    <string name="currency">货币</string>
+    <string name="week_start">星期开始于</string>
+    <string name="theme">主题</string>
+    <string name="language">语言</string>
+    <string name="reminder">提醒</string>
+    <string name="account">账户</string>
+    <string name="data">数据</string>
+    <string name="about">关于</string>
+    <string name="version">版本</string>
+
+    <!-- Settings groups -->
+    <string name="settings_group_general">通用</string>
+    <string name="settings_group_notifications">通知</string>
+    <string name="settings_group_account">账户</string>
+    <string name="settings_group_data">数据</string>
+    <string name="settings_group_about">关于</string>
+
+    <!-- Settings items -->
+    <string name="currency_default">越南盾 (₫)</string>
+    <string name="week_start_default">星期一</string>
+    <string name="language_default">中文</string>
+    <string name="reminder_daily_label">每日支出提醒</string>
+    <string name="reminder_time_summary">每天 19:00</string>
+    <string name="logged_in_as">登录为：</string>
+    <string name="app_version_label">应用版本</string>
+    <string name="export_data_csv">导出数据 (.csv)</string>
+    <string name="import_data_csv">导入数据 (.csv)</string>
+
+    <!-- Theme options -->
+    <string name="light_mode">浅色</string>
+    <string name="dark_mode">深色</string>
+    <string name="system_default">系统默认</string>
+
+    <!-- Days -->
+    <string name="chip_mon">星期一</string>
+    <string name="chip_tue">星期二</string>
+    <string name="chip_wed">星期三</string>
+    <string name="chip_thu">星期四</string>
+    <string name="chip_fri">星期五</string>
+    <string name="chip_sat">星期六</string>
+    <string name="chip_sun">星期日</string>
+
+    <!-- Home -->
+    <string name="welcome">欢迎</string>
+    <string name="welcome_user">欢迎，%s</string>
+    <string name="current_balance">当前余额</string>
+    <string name="calendar">日历</string>
+    <string name="recent_transactions">最近交易</string>
+
+    <!-- Transactions -->
+    <string name="add_transaction">添加交易</string>
+    <string name="transactions_label">交易</string>
+    <string name="transaction_detail_title">交易详情</string>
+    <string name="transaction_icon_desc">交易图标</string>
+    <string name="transaction_sample_title">示例标题</string>
+    <string name="transaction_sample_date">2025年1月1日</string>
+    <string name="transaction_sample_amount">¥100.00</string>
+    <string name="search_transactions_hint">搜索交易...</string>
+    <string name="no_transactions">无交易</string>
+    <string name="income">收入</string>
+    <string name="expense">支出</string>
+    <string name="income_label">收入</string>
+    <string name="expense_label">支出</string>
+    <string name="amount">金额</string>
+    <string name="category">类别</string>
+    <string name="note">备注</string>
+    <string name="no_note">无备注</string>
+    <string name="date">日期</string>
+    <string name="error_input">请输入有效金额</string>
+
+    <!-- Transaction Types/Chips -->
+    <string name="chip_all">全部</string>
+    <string name="chip_income">收入</string>
+    <string name="chip_expense">支出</string>
+    <string name="chip_type_expense">支出</string>
+
+    <!-- Categories -->
+    <string name="food">食品</string>
+
+    <!-- Wallet -->
+    <string name="wallet_label">钱包</string>
+    <string name="cash_label">现金</string>
+
+    <!-- Reminder -->
+    <string name="reminder_time_label">时间</string>
+    <string name="reminder_time_default">19:00</string>
+    <string name="reminder_daily">每日</string>
+    <string name="reminder_summary_format">%s：%s%s</string>
+    <string name="reminder_title">每日提醒</string>
+    <string name="reminder_off">关闭</string>
+    <string name="repeat_days">重复日期</string>
+    <string name="test_notification">测试通知</string>
+    <string name="ic_settings_desc">设置图标</string>
+    <string name="ic_calendar_desc">日历图标</string>
+
+    <!-- Data -->
+    <string name="no_data">无可用数据</string>
+    <string name="export_csv">导出 CSV</string>
+    <string name="import_csv">导入 CSV</string>
+
+    <!-- Transaction detail strings -->
+    <string name="transaction_title_default">无标题</string>
+    <string name="transaction_date_label">日期：%s</string>
+    <string name="transaction_date_default">未知</string>
+    <string name="transaction_amount_label">金额：%s</string>
+    <string name="transaction_category_label">类别：%s</string>
+    <string name="transaction_category_default">其他</string>
+    <string name="transaction_note_label">备注：%s</string>
+    <string name="transaction_note_default">无备注</string>
+
+    <!-- Month -->
+    <string name="current_month">当前月份</string>
+    <string name="month_title">月份</string>
+    <string name="month_header">月份</string>
+    <string name="month_chart_title">月度图表</string>
+    <string name="month_balance_label">月度余额</string>
+
+    <!-- Statistics -->
+    <string name="expense_by_category">按类别支出</string>
+    <string name="income_by_category">按类别收入</string>
+    <string name="total_income_label">总收入</string>
+    <string name="total_expense_label">总支出</string>
+    <string name="zero_currency">¥0.00</string>
+</resources>
+

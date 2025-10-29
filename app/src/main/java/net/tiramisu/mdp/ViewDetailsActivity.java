@@ -1,14 +1,17 @@
 package net.tiramisu.mdp;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import java.text.NumberFormat;
-import java.util.Locale;
-
 public class ViewDetailsActivity extends AppCompatActivity {
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.setLocale(newBase));
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,9 +32,8 @@ public class ViewDetailsActivity extends AppCompatActivity {
         String category = getIntent().getStringExtra("EXTRA_CATEGORY");
         String note = getIntent().getStringExtra("EXTRA_NOTE");
 
-        // Format amount using locale-aware currency formatting
-        NumberFormat fmt = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("vi-VN"));
-        String amountStr = fmt.format(amount);
+        // Format amount using CurrencyUtils
+        String amountStr = CurrencyUtils.formatCurrency(this, amount);
 
         // Set the transaction details to the TextViews using string resources
         tvDetailTitle.setText(title != null ? title : getString(R.string.transaction_title_default));

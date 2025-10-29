@@ -26,13 +26,12 @@ import com.google.firebase.auth.FirebaseAuth;
 import net.tiramisu.mdp.model.TransactionEntity;
 import net.tiramisu.mdp.repo.TransactionRepository;
 
-import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -82,6 +81,20 @@ public class TransactionsFragment extends Fragment {
         spinnerSort = view.findViewById(R.id.spinnerSort);
         chips = view.findViewById(R.id.chips);
         RecyclerView rv = view.findViewById(R.id.rvTransactions);
+
+        // Ensure Vietnamese text renders correctly
+        if (edtSearch != null) {
+            edtSearch.setTypeface(android.graphics.Typeface.DEFAULT);
+            edtSearch.setPaintFlags(edtSearch.getPaintFlags() | android.graphics.Paint.SUBPIXEL_TEXT_FLAG);
+            // Force text to be rendered with anti-aliasing
+            edtSearch.getPaint().setAntiAlias(true);
+            edtSearch.getPaint().setFlags(edtSearch.getPaint().getFlags() | android.graphics.Paint.ANTI_ALIAS_FLAG);
+            // Set text locale to Vietnamese to ensure proper rendering
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                android.os.LocaleList localeList = new android.os.LocaleList(new Locale("vi", "VN"));
+                edtSearch.setTextLocales(localeList);
+            }
+        }
 
         // setup RecyclerView
         if (rv != null) {
@@ -174,34 +187,31 @@ public class TransactionsFragment extends Fragment {
 
         long finalFrom = from, finalTo = to;
         String finalUserId = userId;
-        repository.getSumIncomeInRange(userId, finalFrom, finalTo, income -> {
-            repository.getSumExpenseInRange(finalUserId, finalFrom, finalTo, expense -> {
-                if (getActivity() == null) return;
-                getActivity().runOnUiThread(() -> {
-                    NumberFormat fmt = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("vi-VN"));
-                    double inc = income == null ? 0.0 : income;
-                    double exp = expense == null ? 0.0 : expense;
-                    Double cached = null;
-                    try { cached = repository.getBaseBalanceLive(finalUserId).getValue(); } catch (Exception ignored) {}
-                    if (cached != null) {
-                        double b = cached;
-                        if (tvTotalIncome != null) tvTotalIncome.setText(fmt.format(inc));
-                        if (tvTotalExpense != null) tvTotalExpense.setText(fmt.format(Math.abs(exp)));
-                        if (tvMonthBalance != null) tvMonthBalance.setText(fmt.format(b + inc + exp));
-                    } else {
-                        repository.getUserBaseBalance(finalUserId, (Double base) -> {
-                            double b = base == null ? 0.0 : base;
-                            if (getActivity() == null) return;
-                            getActivity().runOnUiThread(() -> {
-                                if (tvTotalIncome != null) tvTotalIncome.setText(fmt.format(inc));
-                                if (tvTotalExpense != null) tvTotalExpense.setText(fmt.format(Math.abs(exp)));
-                                if (tvMonthBalance != null) tvMonthBalance.setText(fmt.format(b + inc + exp));
-                            });
+        repository.getSumIncomeInRange(userId, finalFrom, finalTo, income -> repository.getSumExpenseInRange(finalUserId, finalFrom, finalTo, expense -> {
+            if (getActivity() == null) return;
+            getActivity().runOnUiThread(() -> {
+                double inc = income == null ? 0.0 : income;
+                double exp = expense == null ? 0.0 : expense;
+                Double cached = null;
+                try { cached = repository.getBaseBalanceLive(finalUserId).getValue(); } catch (Exception ignored) {}
+                if (cached != null) {
+                    double b = cached;
+                    if (tvTotalIncome != null) tvTotalIncome.setText(CurrencyUtils.formatCurrency(getContext(), inc));
+                    if (tvTotalExpense != null) tvTotalExpense.setText(CurrencyUtils.formatCurrency(getContext(), Math.abs(exp)));
+                    if (tvMonthBalance != null) tvMonthBalance.setText(CurrencyUtils.formatCurrency(getContext(), b + inc + exp));
+                } else {
+                    repository.getUserBaseBalance(finalUserId, (Double base) -> {
+                        double b = base == null ? 0.0 : base;
+                        if (getActivity() == null) return;
+                        getActivity().runOnUiThread(() -> {
+                            if (tvTotalIncome != null) tvTotalIncome.setText(CurrencyUtils.formatCurrency(getContext(), inc));
+                            if (tvTotalExpense != null) tvTotalExpense.setText(CurrencyUtils.formatCurrency(getContext(), Math.abs(exp)));
+                            if (tvMonthBalance != null) tvMonthBalance.setText(CurrencyUtils.formatCurrency(getContext(), b + inc + exp));
                         });
-                    }
-                });
+                    });
+                }
             });
-        });
+        }));
     }
 
     // Apply current search, chip-filter and sort to allEntities and update adapter
@@ -210,7 +220,7 @@ public class TransactionsFragment extends Fragment {
         View view = getView(); if (view == null) return;
 
         String q = "";
-        if (edtSearch != null) q = edtSearch.getText().toString().trim().toLowerCase(Locale.ROOT);
+        if (edtSearch != null) q = normalizeForSearch(edtSearch.getText().toString().trim());
 
         // chip filter
         String typeFilter = null; // null=all, "income" or "expense"
@@ -234,12 +244,14 @@ public class TransactionsFragment extends Fragment {
 
                 boolean match = q.isEmpty();
                 if (!match) {
-                    String note = te.note == null ? "" : te.note.toLowerCase(Locale.ROOT);
-                    String cat = te.category == null ? "" : te.category.toLowerCase(Locale.ROOT);
-                    if (note.contains(q) || cat.contains(q) || dateStr.toLowerCase(Locale.ROOT).contains(q)) match = true;
+                    String note = te.note == null ? "" : normalizeForSearch(te.note);
+                    String cat = te.category == null ? "" : normalizeForSearch(te.category);
+                    String dateNorm = normalizeForSearch(dateStr == null ? "" : dateStr);
+                    if (note.contains(q) || cat.contains(q) || dateNorm.contains(q)) match = true;
                 }
                 if (!match) continue;
 
+                // build Transaction model for adapter
                 int icon = R.drawable.ic_transaction;
                 if ("Ăn uống".equals(te.category)) icon = R.drawable.ic_food;
                 if ("Đi lại".equals(te.category)) icon = R.drawable.ic_transport;
@@ -248,23 +260,24 @@ public class TransactionsFragment extends Fragment {
 
                 String title = te.category != null && !te.category.isEmpty() ? te.category : (te.note != null && !te.note.isEmpty() ? te.note : "Giao dịch");
                 Transaction t = new Transaction(title, dateStr, te.amount, icon);
+                t.extraLong = te.timestamp;
                 pairs.add(new Pair<>(t, te.timestamp));
             }
         }
-
+        // Sort
         int sortPos = spinnerSort == null ? 0 : spinnerSort.getSelectedItemPosition();
         switch (sortPos) {
             case 0: // Newest
-                Collections.sort(pairs, (p1, p2) -> Long.compare(p2.second, p1.second));
+                pairs.sort((p1, p2) -> Long.compare(p2.second, p1.second));
                 break;
             case 1: // Oldest
-                Collections.sort(pairs, (p1, p2) -> Long.compare(p1.second, p2.second));
+                pairs.sort(Comparator.comparingLong(p -> p.second));
                 break;
             case 2: // Amount asc
-                Collections.sort(pairs, (p1, p2) -> Double.compare(p1.first.amount, p2.first.amount));
+                pairs.sort(Comparator.comparingDouble(p -> p.first.amount));
                 break;
             case 3: // Amount desc
-                Collections.sort(pairs, (p1, p2) -> Double.compare(p2.first.amount, p1.first.amount));
+                pairs.sort((p1, p2) -> Double.compare(p2.first.amount, p1.first.amount));
                 break;
             default:
                 break;
@@ -272,28 +285,58 @@ public class TransactionsFragment extends Fragment {
 
         List<Transaction> out = new ArrayList<>();
         for (Pair<Transaction, Long> p : pairs) out.add(p.first);
+
+        // update adapter and empty view
         adapter.setItems(out);
+        TextView empty = view.findViewById(R.id.emptyView);
+        if (empty != null) empty.setVisibility(out.isEmpty() ? View.VISIBLE : View.GONE);
+
+        // scroll to top
+        RecyclerView rv2 = view.findViewById(R.id.rvTransactions);
+        if (rv2 != null && !out.isEmpty()) rv2.scrollToPosition(0);
     }
 
-    // Called externally (e.g., MainActivity) to optimistically show a newly added transaction.
-    // It updates the adapter immediately and refreshes the cached list from DB to stay authoritative.
-    public void addTransaction(Transaction tx) {
-        if (tx == null) return;
-        // optimistic UI update
-        if (adapter != null) adapter.addTransaction(tx);
+    // Normalize text for search: remove diacritics, lower-case, collapse whitespace
+    private static String normalizeForSearch(String s) {
+        if (s == null) return "";
+        try {
+            String t = java.text.Normalizer.normalize(s, java.text.Normalizer.Form.NFD);
+            t = t.replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+            t = t.toLowerCase(Locale.ROOT).trim().replaceAll("\\s+", " ");
+            return t;
+        } catch (Exception ex) {
+            return s.toLowerCase(Locale.ROOT).trim();
+        }
+    }
 
-        // Refresh authoritative data from DB in background
+    // Called externally (e.g., MainActivity) when a new transaction is added.
+    // Refresh the data from repository to ensure UI is up-to-date.
+    public void addTransaction(Transaction tx) {
+        // Refresh data from repository (which triggers repoListener -> applyFilters)
         try {
             String userId = "local";
-            try { if (FirebaseAuth.getInstance().getCurrentUser() != null) userId = FirebaseAuth.getInstance().getCurrentUser().getUid(); } catch (Exception ignored) {}
+            try {
+                if (FirebaseAuth.getInstance().getCurrentUser() != null)
+                    userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            } catch (Exception ignored) {}
+
+            final String finalUserId = userId;
             repository.getByUser(userId, entities -> {
                 if (entities == null) entities = new ArrayList<>();
                 synchronized (allEntities) {
                     allEntities.clear();
                     allEntities.addAll(entities);
                 }
-                if (getActivity() != null) getActivity().runOnUiThread(this::applyFilters);
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        applyFilters();
+                        // also refresh sums
+                        View v = getView();
+                        if (v != null) refreshSums(v);
+                    });
+                }
             });
         } catch (Exception ignored) {}
     }
+
 }

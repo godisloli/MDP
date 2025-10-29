@@ -28,23 +28,20 @@ import com.google.firebase.firestore.SetOptions;
 import net.tiramisu.mdp.model.TransactionEntity;
 import net.tiramisu.mdp.repo.TransactionRepository;
 
-import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
-import java.util.function.Consumer;
 
 public class HomeFragment extends Fragment {
-    private TextView tvUserEmail, tvBalance, tvIncome, tvExpense;
+    private TextView tvBalance;
+    private TextView tvIncome;
+    private TextView tvExpense;
     private TransactionRepository repository;
     private double currentBaseBalance = 0.0;
-    private RecyclerView rvRecent;
     private TransactionAdapter recentAdapter;
 
     public HomeFragment() {}
@@ -64,11 +61,11 @@ public class HomeFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        tvUserEmail = view.findViewById(R.id.tvUserEmail);
+        TextView tvUserEmail = view.findViewById(R.id.tvUserEmail);
         tvBalance = view.findViewById(R.id.tvBalance);
         tvIncome = view.findViewById(R.id.tvIncome);
         tvExpense = view.findViewById(R.id.tvExpense);
-        rvRecent = view.findViewById(R.id.rvRecent);
+        RecyclerView rvRecent = view.findViewById(R.id.rvRecent);
 
         repository = net.tiramisu.mdp.repo.TransactionRepository.getInstance(requireContext());
 
@@ -204,18 +201,24 @@ public class HomeFragment extends Fragment {
                 java.util.List<Transaction> temp = new java.util.ArrayList<>();
                 // convert each TransactionEntity -> Transaction model and add to temp list
                 for (TransactionEntity te : list) {
-                    int icon = R.drawable.ic_transaction;
-                    if ("Ăn uống".equals(te.category)) icon = R.drawable.ic_food;
-                    if ("Đi lại".equals(te.category)) icon = R.drawable.ic_transport;
-                    if ("Mua sắm".equals(te.category)) icon = R.drawable.ic_shopping;
-                    if ("Giải trí".equals(te.category)) icon = R.drawable.ic_entertainment;
-                    String title = te.category != null ? te.category : "Giao dịch";
-                    Transaction t = new Transaction(title, "now", te.amount, icon);
+                    Transaction t = getTransaction(te);
                     temp.add(t);
                 }
                 recentAdapter.setItems(temp);
             });
         });
+    }
+
+    @NonNull
+    private static Transaction getTransaction(TransactionEntity te) {
+        int icon = R.drawable.ic_transaction;
+        if ("Ăn uống".equals(te.category)) icon = R.drawable.ic_food;
+        if ("Đi lại".equals(te.category)) icon = R.drawable.ic_transport;
+        if ("Mua sắm".equals(te.category)) icon = R.drawable.ic_shopping;
+        if ("Giải trí".equals(te.category)) icon = R.drawable.ic_entertainment;
+        String title = te.category != null ? te.category : "Giao dịch";
+        Transaction t = new Transaction(title, "now", te.amount, icon);
+        return t;
     }
 
     private void loadMonthlySums(String userId) {
@@ -241,21 +244,18 @@ public class HomeFragment extends Fragment {
         // fetch sums asynchronously
         long finalFrom = from;
         long finalTo = to;
-        repository.getSumIncomeInRange(uid, from, to, (Double income) -> {
-            repository.getSumExpenseInRange(uid, finalFrom, finalTo, (Double expense) -> {
-                // update UI on main thread
-                if (getActivity() == null) return;
-                getActivity().runOnUiThread(() -> {
-                    NumberFormat fmt = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("vi-VN"));
-                    Log.d("HomeFrag", "loadMonthlySums results: income=" + income + " expense=" + expense + " base=" + currentBaseBalance);
-                    if (tvIncome != null) tvIncome.setText(fmt.format(income == null ? 0.0 : income));
-                    if (tvExpense != null) tvExpense.setText(fmt.format(Math.abs(expense == null ? 0.0 : expense)));
-                    // also update balance display: base + net change this month
-                    double net = (income == null ? 0.0 : income) + (expense == null ? 0.0 : expense); // expense is negative sum
-                    updateBalanceDisplay(currentBaseBalance + net);
-                });
+        repository.getSumIncomeInRange(uid, from, to, (Double income) -> repository.getSumExpenseInRange(uid, finalFrom, finalTo, (Double expense) -> {
+            // update UI on main thread
+            if (getActivity() == null) return;
+            getActivity().runOnUiThread(() -> {
+                Log.d("HomeFrag", "loadMonthlySums results: income=" + income + " expense=" + expense + " base=" + currentBaseBalance);
+                if (tvIncome != null) tvIncome.setText(CurrencyUtils.formatCurrency(getContext(), income == null ? 0.0 : income));
+                if (tvExpense != null) tvExpense.setText(CurrencyUtils.formatCurrency(getContext(), Math.abs(expense == null ? 0.0 : expense)));
+                // also update balance display: base + net change this month
+                double net = (income == null ? 0.0 : income) + (expense == null ? 0.0 : expense); // expense is negative sum
+                updateBalanceDisplay(currentBaseBalance + net);
             });
-        });
+        }));
     }
 
     // Load base balance for a user from Firestore. If 'after' is non-null, call it after loading (success or failure).
@@ -295,8 +295,7 @@ public class HomeFragment extends Fragment {
 
     private void updateBalanceDisplay(double value) {
         if (tvBalance == null) return;
-        NumberFormat fmt = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("vi-VN"));
-        tvBalance.setText(fmt.format(value));
+        tvBalance.setText(CurrencyUtils.formatCurrency(getContext(), value));
     }
 
     private double parseNumber(Object obj) {
@@ -317,15 +316,14 @@ public class HomeFragment extends Fragment {
         b.setTitle("Chỉnh sửa số dư");
         final EditText input = new EditText(requireContext());
         input.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL | InputType.TYPE_NUMBER_FLAG_SIGNED);
-        NumberFormat fmt = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("vi-VN"));
         // Show the displayed total (base + current month net) as hint to the user, because the user
         // expects to edit the visible total. Compute net asynchronously and update the hint when ready.
         final String targetUserForHint = (uid != null && !uid.isEmpty()) ? uid : "local";
-        input.setHint(fmt.format(currentBaseBalance));
+        input.setHint(CurrencyUtils.formatCurrency(getContext(), currentBaseBalance));
         computeCurrentMonthNet(targetUserForHint, (Double net) -> {
             double netVal = net == null ? 0.0 : net;
             final double displayed = currentBaseBalance + netVal;
-            if (getActivity() != null) getActivity().runOnUiThread(() -> input.setHint(fmt.format(displayed)));
+            if (getActivity() != null) getActivity().runOnUiThread(() -> input.setHint(CurrencyUtils.formatCurrency(getContext(), displayed)));
         });
         b.setView(input);
         b.setPositiveButton("Lưu", (DialogInterface dialog, int which) -> {
@@ -412,13 +410,11 @@ public class HomeFragment extends Fragment {
         final long finalFrom = from;
         final long finalTo = to;
         // use repository methods to fetch income and expense and combine them
-        repository.getSumIncomeInRange(userId, finalFrom, finalTo, (Double income) -> {
-            repository.getSumExpenseInRange(userId, finalFrom, finalTo, (Double expense) -> {
-                double inc = income == null ? 0.0 : income;
-                double exp = expense == null ? 0.0 : expense; // expense may be negative in DB
-                double net = inc + exp;
-                if (callback != null) callback.accept(net);
-            });
-        });
+        repository.getSumIncomeInRange(userId, finalFrom, finalTo, (Double income) -> repository.getSumExpenseInRange(userId, finalFrom, finalTo, (Double expense) -> {
+            double inc = income == null ? 0.0 : income;
+            double exp = expense == null ? 0.0 : expense; // expense may be negative in DB
+            double net = inc + exp;
+            if (callback != null) callback.accept(net);
+        }));
     }
 }

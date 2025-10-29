@@ -1,10 +1,9 @@
 package net.tiramisu.mdp;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
-import android.widget.TextView;
-import android.view.View;
 import android.util.Log;
 
 import androidx.activity.EdgeToEdge;
@@ -36,6 +35,11 @@ public class MainActivity extends AppCompatActivity {
 
     // Activity Result launcher for AddTransactionActivity
     private ActivityResultLauncher<Intent> addTransactionLauncher;
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.setLocale(newBase));
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +79,25 @@ public class MainActivity extends AppCompatActivity {
             fabAdd = findViewById(R.id.fabAdd);
             // topSummariesContainer = findViewById(R.id.topSummariesContainer);
             // tvMonthTitleShared = findViewById(R.id.tvMonthTitle);
+
+            // Handle window insets for ViewPager2 to ensure content doesn't go under BottomNavigationView
+            if (viewPager != null) {
+                androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(viewPager, (v, insets) -> {
+                    androidx.core.graphics.Insets systemBars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars());
+                    // Add bottom padding to account for BottomNavigationView + system nav bar
+                    v.setPadding(0, 0, 0, systemBars.bottom + getResources().getDimensionPixelSize(R.dimen.bottom_nav_height));
+                    return androidx.core.view.WindowInsetsCompat.CONSUMED;
+                });
+            }
+
+            // Handle window insets for BottomNavigationView to avoid being covered by system navigation bar
+            if (bottomNav != null) {
+                androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(bottomNav, (v, insets) -> {
+                    androidx.core.graphics.Insets systemBars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars());
+                    v.setPadding(0, 0, 0, systemBars.bottom);
+                    return insets;
+                });
+            }
 
             // Register the activity result launcher
             addTransactionLauncher = registerForActivityResult(

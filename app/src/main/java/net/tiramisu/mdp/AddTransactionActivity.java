@@ -1,6 +1,7 @@
 package net.tiramisu.mdp;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -236,5 +237,10 @@ public class AddTransactionActivity extends AppCompatActivity {
             // hide suggestions after selection
             if (llAmountSuggestions != null) llAmountSuggestions.setVisibility(View.GONE);
         } catch (Exception ignored) {}
+    }
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.setLocale(newBase));
     }
 }

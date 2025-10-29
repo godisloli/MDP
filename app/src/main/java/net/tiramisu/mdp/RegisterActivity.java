@@ -1,5 +1,6 @@
 package net.tiramisu.mdp;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Patterns;
@@ -10,6 +11,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -114,14 +116,7 @@ public class RegisterActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         Toast.makeText(RegisterActivity.this, "Account created", Toast.LENGTH_SHORT).show();
                         // Get the newly created user
-                        com.google.firebase.auth.FirebaseUser user = mAuth.getCurrentUser();
-                        String userEmail = user != null ? user.getEmail() : "";
-                        String userUid = user != null ? user.getUid() : "";
-
-                        // Navigate to main app with extras
-                        Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
-                        intent.putExtra("EXTRA_USER_EMAIL", userEmail);
-                        intent.putExtra("EXTRA_USER_UID", userUid);
+                        Intent intent = getIntent1();
                         // Start MainActivity normally (no NEW_TASK / CLEAR_TOP flags)
                         try {
                             startActivity(intent);
@@ -147,5 +142,23 @@ public class RegisterActivity extends AppCompatActivity {
                         Toast.makeText(RegisterActivity.this, msg, Toast.LENGTH_LONG).show();
                     }
                 });
+    }
+
+    @NonNull
+    private Intent getIntent1() {
+        com.google.firebase.auth.FirebaseUser user = mAuth.getCurrentUser();
+        String userEmail = user != null ? user.getEmail() : "";
+        String userUid = user != null ? user.getUid() : "";
+
+        // Navigate to main app with extras
+        Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+        intent.putExtra("EXTRA_USER_EMAIL", userEmail);
+        intent.putExtra("EXTRA_USER_UID", userUid);
+        return intent;
+    }
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.setLocale(newBase));
     }
 }

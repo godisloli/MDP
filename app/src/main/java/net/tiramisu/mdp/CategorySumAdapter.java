@@ -11,7 +11,6 @@ import androidx.core.content.ContextCompat;
 
 import net.tiramisu.mdp.model.CategorySum;
 
-import java.text.NumberFormat;
 import java.util.List;
 import java.util.Locale;
 
@@ -45,9 +44,9 @@ public class CategorySumAdapter extends RecyclerView.Adapter<CategorySumAdapter.
         CategorySum s = items.get(position);
         String cat = s.category == null ? "Khác" : s.category;
         holder.tvCategory.setText(cat);
-        NumberFormat fmt = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("vi-VN"));
         double val = s.total == null ? 0.0 : s.total;
-        holder.tvAmount.setText(fmt.format(val));
+        // Format using CurrencyUtils
+        holder.tvAmount.setText(CurrencyUtils.formatCurrency(holder.itemView.getContext(), val));
         // color by sign
         int colorRes = (val < 0) ? R.color.red : R.color.green;
         int color = ContextCompat.getColor(holder.itemView.getContext(), colorRes);

@@ -20,12 +20,13 @@
             android:background="@android:color/transparent"/>
     </com.google.android.material.appbar.AppBarLayout>
 
+    <!-- pad bottom so content isn't covered by bottom navigation/gesture bar -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         android:padding="16dp"
-        android:paddingBottom="24dp"
+        android:paddingBottom="120dp"
         android:clipToPadding="false"
         android:scrollbars="none">
 

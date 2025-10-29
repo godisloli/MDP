@@ -40,11 +40,18 @@
                 android:hint="@string/search_transactions_hint"
                 android:paddingStart="12dp"
                 android:paddingEnd="12dp"
+                android:textColor="@android:color/black"
                 android:textColorHint="#8A8A8A"
+                android:textSize="16sp"
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="8dp"
                 android:inputType="text"
-                android:autofillHints="none" />
+                android:imeOptions="actionSearch"
+                android:importantForAutofill="no"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:autofillHints="none"
+                android:fontFamily="sans-serif" />
 
             <!-- Sort spinner -->
             <Spinner

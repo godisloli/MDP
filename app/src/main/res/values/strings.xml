@@ -1,196 +1,173 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 🌟 Thông tin chung -->
+    <!-- App basics -->
     <string name="app_name">Quản Lý Chi Tiêu</string>
-    <string name="app_version">Phiên bản 1.0</string>
+    <string name="app_logo">Logo ứng dụng</string>
+    <string name="app_tagline">Quản lý tài chính cá nhân dễ dàng</string>
+    <string name="copy_right">© 2025 Quản Lý Chi Tiêu. All rights reserved.</string>
 
-    <!-- App short tagline -->
-    <string name="app_tagline">Theo dõi • Tiết kiệm • Phát triển</string>
+    <!-- Navigation -->
+    <string name="nav_home">Trang chủ</string>
+    <string name="nav_chart">Thống kê</string>
+    <string name="nav_transactions">Giao dịch</string>
+    <string name="nav_settings">Cài đặt</string>
 
-    <!-- Common labels -->
-    <string name="current_balance">Số dư hiện tại</string>
-    <string name="calendar">Lịch</string>
-    <string name="welcome">Xin chào</string>
-    <string name="welcome_user">Xin chào, %1$s</string>
-
-    <!-- Small UI labels -->
-    <string name="current_month">Tháng 10, 2025</string>
-    <string name="income_label">↗ Thu nhập</string>
-    <string name="expense_label">↙ Chi tiêu</string>
-    <string name="recent_transactions">Giao dịch gần đây</string>
-    <string name="add_transaction">Thêm giao dịch</string>
-
-    <!-- Sample transaction placeholders -->
-    <string name="transaction_movement">Di chuyển</string>
-    <string name="transaction_date_sample">05–10</string>
-    <string name="transaction_amount_sample">-300.000 ₫</string>
-    <string name="transaction_icon_desc">Biểu tượng giao dịch</string>
-
-    <!-- 🏠 Trang chủ -->
-    <string name="home_title">Trang chủ</string>
-    <string name="home_welcome">Xin chào, hãy theo dõi chi tiêu của bạn hôm nay!</string>
-    <string name="total_expense">Tổng chi tiêu</string>
-    <string name="total_income">Tổng thu nhập</string>
-    <string name="balance">Số dư</string>
-
-    <!-- 💰 Danh mục -->
-    <string name="categories">Danh mục</string>
-    <string name="food">Ăn uống</string>
-    <string name="transport">Đi lại</string>
-    <string name="shopping">Mua sắm</string>
-    <string name="study">Học tập</string>
-    <string name="entertainment">Giải trí</string>
-    <string name="others">Khác</string>
-
-    <!-- ➕ Thêm / Chỉnh sửa -->
-    <string name="add_expense">Thêm chi tiêu</string>
-    <string name="edit_expense">Chỉnh sửa chi tiêu</string>
-    <string name="add_income">Thêm thu nhập</string>
-    <string name="amount">Số tiền</string>
-    <string name="note">Ghi chú</string>
-    <string name="date">Ngày</string>
-    <string name="category">Danh mục</string>
-    <string name="save">Lưu</string>
+    <!-- Common -->
+    <string name="ok">OK</string>
     <string name="cancel">Hủy</string>
+    <string name="change">Đổi</string>
+    <string name="save">Lưu</string>
     <string name="delete">Xóa</string>
-    <string name="confirm_delete">Bạn có chắc muốn xóa khoản này?</string>
+    <string name="edit">Sửa</string>
+    <string name="add">Thêm</string>
+    <string name="search">Tìm kiếm</string>
 
-    <!-- 📊 Thống kê -->
-    <string name="statistics">Thống kê</string>
-    <string name="monthly_report">Báo cáo tháng</string>
-    <string name="yearly_report">Báo cáo năm</string>
-    <string name="expense_chart">Biểu đồ chi tiêu</string>
-    <string name="income_chart">Biểu đồ thu nhập</string>
-    <string name="highest_expense">Khoản chi lớn nhất</string>
-    <string name="lowest_expense">Khoản chi nhỏ nhất</string>
-
-    <!-- ⚙️ Cài đặt -->
-    <string name="settings">Cài đặt</string>
-    <string name="language">Ngôn ngữ</string>
-    <string name="currency">Đơn vị tiền tệ</string>
-    <string name="theme">Giao diện</string>
-    <string name="dark_mode">Chế độ tối</string>
-    <string name="light_mode">Chế độ sáng</string>
-
-    <!-- 👤 Ngư�����i dùng -->
-    <string name="profile">Hồ sơ cá nhân</string>
-    <string name="user_name">Tên người dùng</string>
-    <string name="logout">Đăng xuất</string>
-    <string name="login">Đăng nhập</string>
-    <string name="register">Đăng ký</string>
-
-    <!-- 📅 Bộ lọc thời gian -->
-    <string name="filter_today">Hôm nay</string>
-    <string name="filter_week">Tuần này</string>
-    <string name="filter_month">Tháng này</string>
-    <string name="filter_year">Năm nay</string>
-    <string name="filter_custom">Tùy chỉnh</string>
-
-    <!-- 🔔 Thông báo -->
-    <string name="success_add">Thêm thành công!</string>
-    <string name="success_update">Cập nhật thành công!</string>
-    <string name="success_delete">Đã xóa thành công!</string>
-    <string name="error_input">Vui lòng nhập đầy đủ thông tin!</string>
-
-    <!-- 📦 Khác -->
-    <string name="no_data">Chưa có dữ liệu</string>
-    <string name="loading">Đang tải…</string>
-    <string name="try_again">Thử lại</string>
-
-    <!-- Common input hints -->
+    <!-- Login/Register -->
     <string name="email_hint">Email</string>
-    <string name="password_hint">Password</string>
+    <string name="password_hint">Mật khẩu</string>
     <string name="full_name_hint">Họ và tên</string>
     <string name="confirm_password_hint">Xác nhận mật khẩu</string>
-
-    <!-- Forget password strings -->
-    <string name="back">Quay lại</string>
+    <string name="login">Đăng nhập</string>
+    <string name="register">Đăng ký</string>
+    <string name="logout">Đăng xuất</string>
+    <string name="forgot_password">Quên mật khẩu?</string>
     <string name="forgot_password_title">Quên mật khẩu</string>
-    <string name="forgot_password_instruction">Nhập địa chỉ email của bạn và chúng tôi sẽ gửi hướng dẫn đặt lại mật khẩu.</string>
-    <string name="send_reset_link">Gửi liên kết đặt lại</string>
+    <string name="forgot_password_instruction">Nhập email của bạn để nhận liên kết đặt lại mật khẩu</string>
     <string name="forgot_password_link">Quên mật khẩu?</string>
-
-    <!-- Messages used by ForgetPasswordActivity -->
-    <string name="enter_valid_email">Vui lòng nhập email hợp lệ</string>
+    <string name="send_reset_link">Gửi liên kết đặt lại</string>
+    <string name="back_to_login">Quay lại đăng nhập</string>
+    <string name="confirm_password">Xác nhận mật khẩu</string>
+    <string name="enter_valid_email">Nhập email hợp lệ</string>
     <string name="no_network">Không có kết nối mạng</string>
     <string name="firebase_not_initialized">Firebase chưa được khởi tạo</string>
-    <string name="check_email_reset">Kiểm tra email để nhận hướng dẫn đặt lại mật khẩu</string>
+    <string name="check_email_reset">Kiểm tra email để đặt lại mật khẩu</string>
     <string name="failed_send_reset">Gửi email đặt lại thất bại</string>
-    <string name="error_prefix">Lỗi: %1$s</string>
+    <string name="error_prefix">Lỗi: %s</string>
 
-    <!-- Back to login label used on register/forgot screens -->
-    <string name="back_to_login">← Quay lại đăng nhập</string>
+    <!-- Settings -->
+    <string name="settings">Cài đặt</string>
+    <string name="currency">Đơn vị tiền tệ</string>
+    <string name="week_start">Ngày bắt đầu tuần</string>
+    <string name="theme">Giao diện</string>
+    <string name="language">Ngôn ngữ</string>
+    <string name="reminder">Nhắc nhở</string>
+    <string name="account">Tài khoản</string>
+    <string name="data">Dữ liệu</string>
+    <string name="about">Giới thiệu</string>
+    <string name="version">Phiên bản</string>
 
-    <!-- Misc -->
-    <string name="app_logo">Biểu tượng ứng dụng</string>
-    <string name="copy_right">© 2025 Quản Lý Chi Tiêu</string>
+    <!-- Settings groups -->
+    <string name="settings_group_general">Chung</string>
+    <string name="settings_group_notifications">Thông báo</string>
+    <string name="settings_group_account">Tài khoản</string>
+    <string name="settings_group_data">Dữ liệu</string>
+    <string name="settings_group_about">Giới thiệu</string>
 
-    <!-- Sample amounts -->
-    <string name="sample_balance">11.900.000 ₫</string>
-    <string name="sample_income">+17.000.000 ₫</string>
-    <string name="sample_expense">-5.100.000 ₫</string>
+    <!-- Settings items -->
+    <string name="currency_default">Việt Nam Đồng (₫)</string>
+    <string name="week_start_default">Thứ Hai</string>
+    <string name="language_default">Tiếng Việt</string>
+    <string name="reminder_daily_label">Nhắc chi tiêu hằng ngày</string>
+    <string name="reminder_time_summary">19:00 mỗi ngày</string>
+    <string name="logged_in_as">Đang đăng nhập:</string>
+    <string name="app_version_label">Phiên bản ứng dụng</string>
+    <string name="export_data_csv">Xuất dữ liệu (.csv)</string>
+    <string name="import_data_csv">Nhập dữ liệu (.csv)</string>
 
-    <!-- Strings used by activity_transaction_detail.xml -->
+    <!-- Theme options -->
+    <string name="light_mode">Sáng</string>
+    <string name="dark_mode">Tối</string>
+    <string name="system_default">Theo hệ thống</string>
+
+    <!-- Days -->
+    <string name="chip_mon">Thứ Hai</string>
+    <string name="chip_tue">Thứ Ba</string>
+    <string name="chip_wed">Thứ Tư</string>
+    <string name="chip_thu">Thứ Năm</string>
+    <string name="chip_fri">Thứ Sáu</string>
+    <string name="chip_sat">Thứ Bảy</string>
+    <string name="chip_sun">Chủ Nhật</string>
+
+    <!-- Home -->
+    <string name="welcome">Chào mừng</string>
+    <string name="welcome_user">Chào mừng, %s</string>
+    <string name="current_balance">Số dư hiện tại</string>
+    <string name="calendar">Lịch</string>
+    <string name="recent_transactions">Giao dịch gần đây</string>
+
+    <!-- Transactions -->
+    <string name="add_transaction">Thêm giao dịch</string>
+    <string name="transactions_label">Giao dịch</string>
     <string name="transaction_detail_title">Chi tiết giao dịch</string>
-    <string name="transaction_sample_title">Bữa trưa</string>
-    <string name="transaction_sample_date">01/10/2025 · 12:30</string>
-    <string name="chip_type_expense">Chi tiêu</string>
-    <string name="transaction_sample_amount">-120.000 ₫</string>
-    <string name="wallet_label">Ví/Tài khoản</string>
-    <string name="cash_label">Tiền mặt</string>
+    <string name="transaction_icon_desc">Biểu tượng giao dịch</string>
+    <string name="transaction_sample_title">Tiêu đề mẫu</string>
+    <string name="transaction_sample_date">01/01/2025</string>
+    <string name="transaction_sample_amount">100.000 ₫</string>
+    <string name="search_transactions_hint">Tìm kiếm giao dịch...</string>
+    <string name="no_transactions">Không có giao dịch</string>
+    <string name="income">Thu nhập</string>
+    <string name="expense">Chi tiêu</string>
+    <string name="income_label">Thu nhập</string>
+    <string name="expense_label">Chi tiêu</string>
+    <string name="amount">Số tiền</string>
+    <string name="category">Danh mục</string>
+    <string name="note">Ghi chú</string>
     <string name="no_note">Không có ghi chú</string>
+    <string name="date">Ngày</string>
+    <string name="error_input">Vui lòng nhập số tiền hợp lệ</string>
 
-    <!-- Transaction detail helper strings -->
-    <string name="transaction_amount_label">Số tiền: %1$s</string>
-    <string name="transaction_date_label">Ngày: %1$s</string>
-    <string name="transaction_category_label">Danh mục: %1$s</string>
-    <string name="transaction_note_label">Ghi chú: %1$s</string>
-    <string name="transaction_title_default">Tiêu đề giao dịch</string>
-    <string name="transaction_date_default">N/A</string>
-    <string name="transaction_category_default">Chung</string>
+    <!-- Transaction Types/Chips -->
+    <string name="chip_all">Tất cả</string>
+    <string name="chip_income">Thu nhập</string>
+    <string name="chip_expense">Chi tiêu</string>
+    <string name="chip_type_expense">Chi tiêu</string>
+
+    <!-- Categories -->
+    <string name="food">Ăn uống</string>
+
+    <!-- Wallet -->
+    <string name="wallet_label">Ví</string>
+    <string name="cash_label">Tiền mặt</string>
+
+    <!-- Reminder -->
+    <string name="reminder_time_label">Thời gian</string>
+    <string name="reminder_time_default">19:00</string>
+    <string name="reminder_daily">Hàng ngày</string>
+    <string name="reminder_summary_format">%s: %s%s</string>
+    <string name="reminder_title">Nhắc nhở hằng ngày</string>
+    <string name="reminder_off">Tắt</string>
+    <string name="repeat_days">Lặp lại vào các ngày</string>
+    <string name="test_notification">Kiểm tra thông báo</string>
+    <string name="ic_settings_desc">Biểu tượng cài đặt</string>
+    <string name="ic_calendar_desc">Biểu tượng lịch</string>
+
+    <!-- Data -->
+    <string name="no_data">Không có dữ liệu</string>
+    <string name="export_csv">Xuất CSV</string>
+    <string name="import_csv">Nhập CSV</string>
+
+    <!-- Transaction detail strings -->
+    <string name="transaction_title_default">Không có tiêu đề</string>
+    <string name="transaction_date_label">Ngày: %s</string>
+    <string name="transaction_date_default">Không rõ</string>
+    <string name="transaction_amount_label">Số tiền: %s</string>
+    <string name="transaction_category_label">Danh mục: %s</string>
+    <string name="transaction_category_default">Khác</string>
+    <string name="transaction_note_label">Ghi chú: %s</string>
     <string name="transaction_note_default">Không có ghi chú</string>
 
-    <!-- Month overview strings -->
+    <!-- Month -->
+    <string name="current_month">Tháng hiện tại</string>
     <string name="month_title">Tháng</string>
-    <string name="month_header">Tháng 10, 2025</string>
-    <string name="total_income_label">Tổng thu</string>
-    <string name="total_expense_label">Tổng chi</string>
-    <string name="month_balance_label">Số dư</string>
+    <string name="month_header">Tháng</string>
+    <string name="month_chart_title">Biểu đồ tháng</string>
+    <string name="month_balance_label">Số dư tháng</string>
+
+    <!-- Statistics -->
+    <string name="expense_by_category">Chi tiêu theo danh mục</string>
+    <string name="income_by_category">Thu nhập theo danh mục</string>
+    <string name="total_income_label">Tổng thu nhập</string>
+    <string name="total_expense_label">Tổng chi tiêu</string>
     <string name="zero_currency">0 ₫</string>
-    <string name="month_chart_title">Biểu đồ chi tiêu theo ngày</string>
-    <string name="transactions_label">Thống kê</string>
-    <string name="expense_by_category">Chi tiêu theo loại</string>
-    <string name="income_by_category">Thu nhập theo loại</string>
-
-    <!-- Strings for Daily Reminder screen -->
-    <string name="reminder_title">Nhắc chi tiêu</string>
-    <string name="reminder_daily">Nhắc chi tiêu hằng ngày</string>
-    <string name="reminder_off">Tắt</string>
-    <string name="reminder_time_label">Giờ nhắc</string>
-    <string name="reminder_time_default">19:00</string>
-    <string name="change">Đổi</string>
-    <string name="repeat_days">Lặp vào các ngày</string>
-
-    <!-- Chip labels -->
-    <string name="chip_mon">T2</string>
-    <string name="chip_tue">T3</string>
-    <string name="chip_wed">T4</string>
-    <string name="chip_thu">T5</string>
-    <string name="chip_fri">T6</string>
-    <string name="chip_sat">T7</string>
-    <string name="chip_sun">CN</string>
-
-    <string name="test_notification">Gửi thử thông báo</string>
-
-    <!-- Icon content descriptions -->
-    <string name="ic_settings_desc">Cài đặt</string>
-    <string name="ic_calendar_desc">Lịch</string>
-
-    <!-- Strings referenced by content_transactions.xml -->
-    <string name="search_transactions_hint">Tìm kiếm giao dịch…</string>
-    <string name="chip_all">Tất cả</string>
-    <string name="chip_income">Thu</string>
-    <string name="chip_expense">Chi</string>
-    <string name="no_transactions">Không có giao dịch nào</string>
-
 </resources>
+

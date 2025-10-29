@@ -10,13 +10,10 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.text.NumberFormat;
 import java.util.List;
-import java.util.Locale;
 
 public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.ViewHolder> {
     private final List<Transaction> items;
-    private final NumberFormat fmt = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("vi-VN"));
 
     public TransactionAdapter(List<Transaction> items) {
         this.items = items;
@@ -35,8 +32,8 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         Transaction t = items.get(position);
         holder.title.setText(t.title);
         holder.sub.setText(t.date);
-        // Format amount
-        holder.amount.setText(fmt.format(t.amount));
+        // Format amount using CurrencyUtils
+        holder.amount.setText(CurrencyUtils.formatCurrency(holder.amount.getContext(), t.amount));
         // color negative in red, positive in green
         if (t.amount < 0) {
             holder.amount.setTextColor(ContextCompat.getColor(holder.amount.getContext(), android.R.color.holo_red_dark));

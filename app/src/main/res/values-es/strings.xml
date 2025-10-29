@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App basics -->
+    <string name="app_name">Gestor de Gastos</string>
+    <string name="app_logo">Logo de la aplicación</string>
+    <string name="app_tagline">Administre sus finanzas personales fácilmente</string>
+    <string name="copy_right">© 2025 Gestor de Gastos. Todos los derechos reservados.</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Inicio</string>
+    <string name="nav_chart">Estadísticas</string>
+    <string name="nav_transactions">Transacciones</string>
+    <string name="nav_settings">Configuración</string>
+
+    <!-- Common -->
+    <string name="ok">Aceptar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="change">Cambiar</string>
+    <string name="save">Guardar</string>
+    <string name="delete">Eliminar</string>
+    <string name="edit">Editar</string>
+    <string name="add">Agregar</string>
+    <string name="search">Buscar</string>
+
+    <!-- Login/Register -->
+    <string name="email_hint">Correo electrónico</string>
+    <string name="password_hint">Contraseña</string>
+    <string name="full_name_hint">Nombre completo</string>
+    <string name="confirm_password_hint">Confirmar contraseña</string>
+    <string name="login">Iniciar sesión</string>
+    <string name="register">Registrarse</string>
+    <string name="logout">Cerrar sesión</string>
+    <string name="forgot_password">¿Olvidaste tu contraseña?</string>
+    <string name="forgot_password_title">Olvidé mi contraseña</string>
+    <string name="forgot_password_instruction">Ingrese su correo electrónico para recibir un enlace de restablecimiento de contraseña</string>
+    <string name="forgot_password_link">¿Olvidaste tu contraseña?</string>
+    <string name="send_reset_link">Enviar enlace de restablecimiento</string>
+    <string name="back_to_login">Volver al inicio de sesión</string>
+    <string name="confirm_password">Confirmar contraseña</string>
+    <string name="enter_valid_email">Ingrese un correo válido</string>
+    <string name="no_network">Sin conexión de red</string>
+    <string name="firebase_not_initialized">Firebase no inicializado</string>
+    <string name="check_email_reset">Revise su correo para el enlace de restablecimiento</string>
+    <string name="failed_send_reset">Error al enviar correo de restablecimiento</string>
+    <string name="error_prefix">Error: %s</string>
+
+    <!-- Settings -->
+    <string name="settings">Configuración</string>
+    <string name="currency">Moneda</string>
+    <string name="week_start">La semana comienza el</string>
+    <string name="theme">Tema</string>
+    <string name="language">Idioma</string>
+    <string name="reminder">Recordatorio</string>
+    <string name="account">Cuenta</string>
+    <string name="data">Datos</string>
+    <string name="about">Acerca de</string>
+    <string name="version">Versión</string>
+
+    <!-- Settings groups -->
+    <string name="settings_group_general">General</string>
+    <string name="settings_group_notifications">Notificaciones</string>
+    <string name="settings_group_account">Cuenta</string>
+    <string name="settings_group_data">Datos</string>
+    <string name="settings_group_about">Acerca de</string>
+
+    <!-- Settings items -->
+    <string name="currency_default">Dong vietnamita (₫)</string>
+    <string name="week_start_default">Lunes</string>
+    <string name="language_default">Español</string>
+    <string name="reminder_daily_label">Recordatorio diario de gastos</string>
+    <string name="reminder_time_summary">19:00 todos los días</string>
+    <string name="logged_in_as">Sesión iniciada como:</string>
+    <string name="app_version_label">Versión de la aplicación</string>
+    <string name="export_data_csv">Exportar datos (.csv)</string>
+    <string name="import_data_csv">Importar datos (.csv)</string>
+
+    <!-- Theme options -->
+    <string name="light_mode">Claro</string>
+    <string name="dark_mode">Oscuro</string>
+    <string name="system_default">Predeterminado del sistema</string>
+
+    <!-- Days -->
+    <string name="chip_mon">Lunes</string>
+    <string name="chip_tue">Martes</string>
+    <string name="chip_wed">Miércoles</string>
+    <string name="chip_thu">Jueves</string>
+    <string name="chip_fri">Viernes</string>
+    <string name="chip_sat">Sábado</string>
+    <string name="chip_sun">Domingo</string>
+
+    <!-- Home -->
+    <string name="welcome">Bienvenido</string>
+    <string name="welcome_user">Bienvenido, %s</string>
+    <string name="current_balance">Saldo Actual</string>
+    <string name="calendar">Calendario</string>
+    <string name="recent_transactions">Transacciones Recientes</string>
+
+    <!-- Transactions -->
+    <string name="add_transaction">Agregar transacción</string>
+    <string name="transactions_label">Transacciones</string>
+    <string name="transaction_detail_title">Detalle de transacción</string>
+    <string name="transaction_icon_desc">Icono de transacción</string>
+    <string name="transaction_sample_title">Título de ejemplo</string>
+    <string name="transaction_sample_date">01/01/2025</string>
+    <string name="transaction_sample_amount">$100.00</string>
+    <string name="search_transactions_hint">Buscar transacciones...</string>
+    <string name="no_transactions">Sin transacciones</string>
+    <string name="income">Ingreso</string>
+    <string name="expense">Gasto</string>
+    <string name="income_label">Ingreso</string>
+    <string name="expense_label">Gasto</string>
+    <string name="amount">Cantidad</string>
+    <string name="category">Categoría</string>
+    <string name="note">Nota</string>
+    <string name="no_note">Sin nota</string>
+    <string name="date">Fecha</string>
+    <string name="error_input">Por favor ingrese una cantidad válida</string>
+
+    <!-- Transaction Types/Chips -->
+    <string name="chip_all">Todos</string>
+    <string name="chip_income">Ingreso</string>
+    <string name="chip_expense">Gasto</string>
+    <string name="chip_type_expense">Gasto</string>
+
+    <!-- Categories -->
+    <string name="food">Comida</string>
+
+    <!-- Wallet -->
+    <string name="wallet_label">Billetera</string>
+    <string name="cash_label">Efectivo</string>
+
+    <!-- Reminder -->
+    <string name="reminder_time_label">Hora</string>
+    <string name="reminder_time_default">19:00</string>
+    <string name="reminder_daily">Diario</string>
+    <string name="reminder_summary_format">%s: %s%s</string>
+    <string name="reminder_title">Recordatorio diario</string>
+    <string name="reminder_off">Desactivado</string>
+    <string name="repeat_days">Repetir en días</string>
+    <string name="test_notification">Probar notificación</string>
+    <string name="ic_settings_desc">Icono de configuración</string>
+    <string name="ic_calendar_desc">Icono de calendario</string>
+
+    <!-- Data -->
+    <string name="no_data">No hay datos disponibles</string>
+    <string name="export_csv">Exportar CSV</string>
+    <string name="import_csv">Importar CSV</string>
+
+    <!-- Transaction detail strings -->
+    <string name="transaction_title_default">Sin título</string>
+    <string name="transaction_date_label">Fecha: %s</string>
+    <string name="transaction_date_default">Desconocida</string>
+    <string name="transaction_amount_label">Cantidad: %s</string>
+    <string name="transaction_category_label">Categoría: %s</string>
+    <string name="transaction_category_default">Otro</string>
+    <string name="transaction_note_label">Nota: %s</string>
+    <string name="transaction_note_default">Sin nota</string>
+
+    <!-- Month -->
+    <string name="current_month">Mes actual</string>
+    <string name="month_title">Mes</string>
+    <string name="month_header">Mes</string>
+    <string name="month_chart_title">Gráfico del Mes</string>
+    <string name="month_balance_label">Saldo del Mes</string>
+
+    <!-- Statistics -->
+    <string name="expense_by_category">Gastos por Categoría</string>
+    <string name="income_by_category">Ingresos por Categoría</string>
+    <string name="total_income_label">Ingreso Total</string>
+    <string name="total_expense_label">Gasto Total</string>
+    <string name="zero_currency">$0.00</string>
+</resources>
+

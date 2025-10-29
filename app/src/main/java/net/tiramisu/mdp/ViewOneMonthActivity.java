@@ -1,5 +1,6 @@
 package net.tiramisu.mdp;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.widget.TextView;
 
@@ -13,10 +14,8 @@ import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.formatter.PercentFormatter;
 import com.github.mikephil.charting.utils.ColorTemplate;
 
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import android.graphics.Color;
 
@@ -27,6 +26,11 @@ public class ViewOneMonthActivity extends AppCompatActivity {
     private TextView tvMonthBalance;
     private PieChart pieChartExpense;
     private PieChart pieChartIncome;
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.setLocale(newBase));
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,10 +60,9 @@ public class ViewOneMonthActivity extends AppCompatActivity {
             else expense += Math.abs(t.amount);
         }
 
-        NumberFormat fmt = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("vi-VN"));
-        tvTotalIncome.setText(fmt.format(income));
-        tvTotalExpense.setText(fmt.format(expense));
-        tvMonthBalance.setText(fmt.format(income - expense));
+        tvTotalIncome.setText(CurrencyUtils.formatCurrency(this, income));
+        tvTotalExpense.setText(CurrencyUtils.formatCurrency(this, expense));
+        tvMonthBalance.setText(CurrencyUtils.formatCurrency(this, income - expense));
     }
 
     private void setupPieCharts(List<Transaction> transactions) {

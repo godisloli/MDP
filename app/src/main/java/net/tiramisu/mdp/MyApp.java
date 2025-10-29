@@ -1,6 +1,7 @@
 package net.tiramisu.mdp;
 
 import android.app.Application;
+import android.content.Context;
 import android.util.Log;
 
 import java.io.File;
@@ -9,6 +10,11 @@ import java.io.PrintWriter;
 
 public class MyApp extends Application {
     private static final String TAG = "MyApp";
+
+    @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(LocaleHelper.setLocale(base));
+    }
 
     @Override
     public void onCreate() {
@@ -34,4 +40,3 @@ public class MyApp extends Application {
         });
     }
 }
-

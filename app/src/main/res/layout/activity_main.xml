@@ -7,33 +7,39 @@
     android:background="@drawable/bg_gradient">
 
     <!-- Nội dung chính -->
+
+    <!-- 🔘 Nút thêm -->
+
+    <!-- 🔽 Thanh điều hướng -->
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPager"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent">
 
-    <!-- 🔘 Nút thêm -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabAdd"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center_horizontal"
-        android:layout_marginBottom="80dp"
-        android:src="@drawable/ic_add"
-        app:backgroundTint="@color/primaryColor"
-        app:tint="@color/white"
-        android:contentDescription="@string/add_transaction" />
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabAdd"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="72dp"
+            android:contentDescription="@string/add_transaction"
+            android:src="@drawable/ic_add"
+            app:backgroundTint="@color/primaryColor"
+            app:layout_dodgeInsetEdges="bottom"
+            app:tint="@color/white" />
+    </androidx.viewpager2.widget.ViewPager2>
 
-    <!-- 🔽 Thanh điều hướng -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNav"
         android:layout_width="match_parent"
-        android:layout_height="65dp"
+        android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:background="@color/white"
         app:itemIconTint="@color/primaryDarkColor"
         app:itemTextColor="@color/primaryDarkColor"
         app:menu="@menu/bottom_nav_menu"
-        app:labelVisibilityMode="labeled" />
+        app:labelVisibilityMode="labeled"
+        android:paddingBottom="0dp"
+        android:clipToPadding="false" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

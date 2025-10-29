@@ -19,7 +19,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import net.tiramisu.mdp.model.CategorySum;
 import net.tiramisu.mdp.repo.TransactionRepository;
 
-import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -29,7 +28,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.Iterator;
+
 import android.graphics.Color;
 
 import com.github.mikephil.charting.charts.PieChart;
@@ -206,62 +205,57 @@ public class StatisticsFragment extends Fragment {
         String userId = "local";
         try { if (FirebaseAuth.getInstance().getCurrentUser() != null) userId = FirebaseAuth.getInstance().getCurrentUser().getUid(); } catch (Exception ignored) {}
         final String effectiveUser = userId;
-        repository.getSumIncomeInRange(effectiveUser, currentFrom, currentTo, (Double income) -> {
-            repository.getSumExpenseInRange(effectiveUser, currentFrom, currentTo, (Double expense) -> {
-                if (getActivity() == null) return;
-                getActivity().runOnUiThread(() -> {
-                    NumberFormat fmt = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("vi-VN"));
-                    double inc = income == null ? 0.0 : income;
-                    double exp = expense == null ? 0.0 : expense;
-                    // prefer cached LiveData base to avoid race with remote fetch
-                    Double cached = null;
-                    try { cached = repository.getBaseBalanceLive(effectiveUser).getValue(); } catch (Exception ignored) {}
-                    // update last-known sums
-                    lastIncome = inc;
-                    lastExpense = exp;
-                    if (cached != null) {
-                        double b = cached;
-                        android.util.Log.d("StatisticsFrag", "Using cached base for " + effectiveUser + " = " + b);
-                        if (tvTotalIncome != null) tvTotalIncome.setText(fmt.format(inc));
-                        if (tvTotalExpense != null) tvTotalExpense.setText(fmt.format(Math.abs(exp)));
-                        if (tvMonthBalance != null) tvMonthBalance.setText(fmt.format(b + inc + exp));
-                        // also update activity-level shared summaries if present
-                        if (getActivity() != null) {
-                            try {
-                                TextView actInc = getActivity().findViewById(R.id.tvTotalIncome);
-                                TextView actExp = getActivity().findViewById(R.id.tvTotalExpense);
-                                TextView actBal = getActivity().findViewById(R.id.tvMonthBalance);
-                                if (actInc != null) actInc.setText(fmt.format(inc));
-                                if (actExp != null) actExp.setText(fmt.format(Math.abs(exp)));
-                                if (actBal != null) actBal.setText(fmt.format(b + inc + exp));
-                            } catch (Exception ignored) {}
-                        }
-                    } else {
-                        android.util.Log.d("StatisticsFrag", "Cached base not available for " + effectiveUser + "; falling back to storage");
-                        repository.getUserBaseBalance(effectiveUser, (Double base) -> {
-                            double b = base == null ? 0.0 : base;
-                            if (getActivity() == null) return;
-                            getActivity().runOnUiThread(() -> {
-                                if (tvTotalIncome != null) tvTotalIncome.setText(fmt.format(inc));
-                                if (tvTotalExpense != null) tvTotalExpense.setText(fmt.format(Math.abs(exp)));
-                                if (tvMonthBalance != null) tvMonthBalance.setText(fmt.format(b + inc + exp));
-                                // also update activity-level shared summaries
-                                if (getActivity() != null) {
-                                    try {
-                                        TextView actInc = getActivity().findViewById(R.id.tvTotalIncome);
-                                        TextView actExp = getActivity().findViewById(R.id.tvTotalExpense);
-                                        TextView actBal = getActivity().findViewById(R.id.tvMonthBalance);
-                                        if (actInc != null) actInc.setText(fmt.format(inc));
-                                        if (actExp != null) actExp.setText(fmt.format(Math.abs(exp)));
-                                        if (actBal != null) actBal.setText(fmt.format(b + inc + exp));
-                                    } catch (Exception ignored) {}
-                                }
-                            });
-                        });
+        repository.getSumIncomeInRange(effectiveUser, currentFrom, currentTo, (Double income) -> repository.getSumExpenseInRange(effectiveUser, currentFrom, currentTo, (Double expense) -> {
+            if (getActivity() == null) return;
+            getActivity().runOnUiThread(() -> {
+                // prefer cached LiveData base to avoid race with remote fetch
+                Double cached = null;
+                try { cached = repository.getBaseBalanceLive(effectiveUser).getValue(); } catch (Exception ignored) {}
+                // update last-known sums
+                lastIncome = income == null ? 0.0 : income;
+                lastExpense = expense == null ? 0.0 : expense;
+                if (cached != null) {
+                    double b = cached;
+                    android.util.Log.d("StatisticsFrag", "Using cached base for " + effectiveUser + " = " + b);
+                    if (tvTotalIncome != null) tvTotalIncome.setText(CurrencyUtils.formatCurrency(getContext(), lastIncome));
+                    if (tvTotalExpense != null) tvTotalExpense.setText(CurrencyUtils.formatCurrency(getContext(), Math.abs(lastExpense)));
+                    if (tvMonthBalance != null) tvMonthBalance.setText(CurrencyUtils.formatCurrency(getContext(), b + lastIncome + lastExpense));
+                    // also update activity-level shared summaries if present
+                    if (getActivity() != null) {
+                        try {
+                            TextView actInc = getActivity().findViewById(R.id.tvTotalIncome);
+                            TextView actExp = getActivity().findViewById(R.id.tvTotalExpense);
+                            TextView actBal = getActivity().findViewById(R.id.tvMonthBalance);
+                            if (actInc != null) actInc.setText(CurrencyUtils.formatCurrency(getActivity(), lastIncome));
+                            if (actExp != null) actExp.setText(CurrencyUtils.formatCurrency(getActivity(), Math.abs(lastExpense)));
+                            if (actBal != null) actBal.setText(CurrencyUtils.formatCurrency(getActivity(), b + lastIncome + lastExpense));
+                        } catch (Exception ignored) {}
                     }
-                });
+                } else {
+                    android.util.Log.d("StatisticsFrag", "Cached base not available for " + effectiveUser + "; falling back to storage");
+                    repository.getUserBaseBalance(effectiveUser, (Double base) -> {
+                        double b = base == null ? 0.0 : base;
+                        if (getActivity() == null) return;
+                        getActivity().runOnUiThread(() -> {
+                            if (tvTotalIncome != null) tvTotalIncome.setText(CurrencyUtils.formatCurrency(getContext(), lastIncome));
+                            if (tvTotalExpense != null) tvTotalExpense.setText(CurrencyUtils.formatCurrency(getContext(), Math.abs(lastExpense)));
+                            if (tvMonthBalance != null) tvMonthBalance.setText(CurrencyUtils.formatCurrency(getContext(), b + lastIncome + lastExpense));
+                            // also update activity-level shared summaries
+                            if (getActivity() != null) {
+                                try {
+                                    TextView actInc = getActivity().findViewById(R.id.tvTotalIncome);
+                                    TextView actExp = getActivity().findViewById(R.id.tvTotalExpense);
+                                    TextView actBal = getActivity().findViewById(R.id.tvMonthBalance);
+                                    if (actInc != null) actInc.setText(CurrencyUtils.formatCurrency(getActivity(), lastIncome));
+                                    if (actExp != null) actExp.setText(CurrencyUtils.formatCurrency(getActivity(), Math.abs(lastExpense)));
+                                    if (actBal != null) actBal.setText(CurrencyUtils.formatCurrency(getActivity(), b + lastIncome + lastExpense));
+                                } catch (Exception ignored) {}
+                            }
+                        });
+                    });
+                }
             });
-        });
+        }));
 
         // fetch category sums
         repository.getCategorySumsInRange(effectiveUser, currentFrom, currentTo, (List<CategorySum> list) -> {
@@ -308,7 +302,7 @@ public class StatisticsFragment extends Fragment {
                         double a = Math.abs(val);
                         if (a > 0.0) expenseMap.put(cat, expenseMap.getOrDefault(cat, 0.0) + a);
                     } else if (val > 0) {
-                        if (val > 0.0) incomeMap.put(cat, incomeMap.getOrDefault(cat, 0.0) + val);
+                        incomeMap.put(cat, incomeMap.getOrDefault(cat, 0.0) + val);
                     }
                 }
 
@@ -328,7 +322,7 @@ public class StatisticsFragment extends Fragment {
     private void showMonthPicker() {
         // compute earliest month from DB; ensure at least current month is present
         repository.getMinTimestampForUser(currentUserId, (Long minTs) -> {
-            long startTs = minTs == null ? System.currentTimeMillis() : minTs.longValue();
+            long startTs = minTs == null ? System.currentTimeMillis() : minTs;
             // build list of months from startTs to now
             List<String> labels = new ArrayList<>();
             List<Long> monthFrom = new ArrayList<>();
@@ -405,22 +399,21 @@ public class StatisticsFragment extends Fragment {
         TextView tvMonthBalance = v.findViewById(R.id.tvMonthBalance);
         TextView tvTotalIncome = v.findViewById(R.id.tvTotalIncome);
         TextView tvTotalExpense = v.findViewById(R.id.tvTotalExpense);
-        NumberFormat fmt = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("vi-VN"));
         Double cached = null;
         try { cached = repository.getBaseBalanceLive(userId).getValue(); } catch (Exception ignored) {}
         if (cached != null) {
             double b = cached;
-            if (tvTotalIncome != null) tvTotalIncome.setText(fmt.format(lastIncome));
-            if (tvTotalExpense != null) tvTotalExpense.setText(fmt.format(Math.abs(lastExpense)));
-            if (tvMonthBalance != null) tvMonthBalance.setText(fmt.format(b + lastIncome + lastExpense));
+            if (tvTotalIncome != null) tvTotalIncome.setText(CurrencyUtils.formatCurrency(getContext(), lastIncome));
+            if (tvTotalExpense != null) tvTotalExpense.setText(CurrencyUtils.formatCurrency(getContext(), Math.abs(lastExpense)));
+            if (tvMonthBalance != null) tvMonthBalance.setText(CurrencyUtils.formatCurrency(getContext(), b + lastIncome + lastExpense));
         } else {
             repository.getUserBaseBalance(userId, (Double base) -> {
                 double b = base == null ? 0.0 : base;
                 if (getActivity() == null) return;
                 getActivity().runOnUiThread(() -> {
-                    if (tvTotalIncome != null) tvTotalIncome.setText(fmt.format(lastIncome));
-                    if (tvTotalExpense != null) tvTotalExpense.setText(fmt.format(Math.abs(lastExpense)));
-                    if (tvMonthBalance != null) tvMonthBalance.setText(fmt.format(b + lastIncome + lastExpense));
+                    if (tvTotalIncome != null) tvTotalIncome.setText(CurrencyUtils.formatCurrency(getContext(), lastIncome));
+                    if (tvTotalExpense != null) tvTotalExpense.setText(CurrencyUtils.formatCurrency(getContext(), Math.abs(lastExpense)));
+                    if (tvMonthBalance != null) tvMonthBalance.setText(CurrencyUtils.formatCurrency(getContext(), b + lastIncome + lastExpense));
                 });
             });
         }
@@ -436,12 +429,10 @@ public class StatisticsFragment extends Fragment {
         }
 
         List<PieEntry> entries = new ArrayList<>();
-        double total = 0.0;
-        for (Double v : data.values()) total += (v == null ? 0.0 : v);
+        data.values();
         for (Map.Entry<String, Double> e : data.entrySet()) {
             double v = e.getValue() == null ? 0.0 : e.getValue();
             if (v <= 0.0) continue;
-            float perc = total <= 0.0 ? 0f : (float)(v / total * 100.0);
             entries.add(new PieEntry((float)v, e.getKey()));
         }
 
