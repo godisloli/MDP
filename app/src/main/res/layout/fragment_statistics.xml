@@ -4,19 +4,41 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <LinearLayout
+    <!-- Use a NestedScrollView so the header (charts) and the list scroll together -->
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:fillViewport="true">
 
-        <!-- Header: month + summaries + charts -->
-        <include layout="@layout/view_statistic_header" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
 
-        <!-- Content (transactions list) -->
-        <include layout="@layout/content_statistic_overview" />
+            <!-- Header: month + summaries + charts -->
+            <include layout="@layout/view_statistic_header" />
 
-    </LinearLayout>
+            <!-- Content (transactions list) - inline here so it is part of the NestedScrollView and scrolls with charts -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/transactions_label"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvMonthTransactions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                android:clipToPadding="false"
+                android:paddingBottom="96dp" />
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
 
     <!-- Floating action button-like control to open the full month view -->
     <Button

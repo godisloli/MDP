@@ -1,13 +1,16 @@
 package net.tiramisu.mdp;
 
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.util.Log;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.AdapterView;
+import android.text.TextWatcher;
+import android.text.Editable;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,17 +20,20 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.chip.ChipGroup;
 import com.google.firebase.auth.FirebaseAuth;
 
 import net.tiramisu.mdp.model.TransactionEntity;
 import net.tiramisu.mdp.repo.TransactionRepository;
 
 import java.text.NumberFormat;
-import java.time.format.DateTimeFormatter;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.Calendar;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -35,33 +41,26 @@ public class TransactionsFragment extends Fragment {
     private TransactionAdapter adapter;
     private TransactionRepository repository;
 
-    // listener to refresh sums when DB changes
+    // cached full list from DB (used for filtering/sorting)
+    private final List<TransactionEntity> allEntities = new ArrayList<>();
+
+    // UI controls
+    private EditText edtSearch;
+    private Spinner spinnerSort;
+    private ChipGroup chips;
+
+    // listener - called by repository when data changes
     private final Runnable repoListener = () -> {
-        // repository now posts listeners on the main thread; perform UI updates directly
-        View v = getView();
-        if (v != null) {
-            refreshSums(v);
-            // reload latest transactions for the current user
-            String userId = "local";
-            try { if (com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() != null) userId = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid(); } catch (Exception ignored) {}
-            repository.getByUser(userId, entities -> {
-                if (entities == null) return;
-                if (getActivity() == null) return;
-                getActivity().runOnUiThread(() -> {
-                    if (adapter == null) return;
-                    adapter.clear();
-                    for (TransactionEntity te : entities) {
-                        int icon = R.drawable.ic_transaction;
-                        if ("Ăn uống".equals(te.category)) icon = R.drawable.ic_food;
-                        if ("Đi lại".equals(te.category)) icon = R.drawable.ic_transport;
-                        if ("Mua sắm".equals(te.category)) icon = R.drawable.ic_shopping;
-                        if ("Giải trí".equals(te.category)) icon = R.drawable.ic_entertainment;
-                        Transaction t = new Transaction(te.category != null ? te.category : "Giao dịch", "now", te.amount, icon);
-                        adapter.addTransaction(t);
-                    }
-                });
-            });
-        }
+        String userId = "local";
+        try { if (FirebaseAuth.getInstance().getCurrentUser() != null) userId = FirebaseAuth.getInstance().getCurrentUser().getUid(); } catch (Exception ignored) {}
+        repository.getByUser(userId, entities -> {
+            if (entities == null) entities = new ArrayList<>();
+            synchronized (allEntities) {
+                allEntities.clear();
+                allEntities.addAll(entities);
+            }
+            if (getActivity() != null) getActivity().runOnUiThread(this::applyFilters);
+        });
     };
 
     public TransactionsFragment() {}
@@ -76,96 +75,76 @@ public class TransactionsFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Ensure the month title is shown (the header is included in layouts for both tabs)
-        try {
-            LocalDate now = LocalDate.now();
-            TextView tvMonthTitle = view.findViewById(R.id.tvMonthTitle);
-            if (tvMonthTitle != null) {
-                tvMonthTitle.setText(now.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.forLanguageTag("vi-VN"))));
-                // not clickable in transactions screen, but ensure visible
-                tvMonthTitle.setVisibility(View.VISIBLE);
-            }
-        } catch (Exception ignored) {}
+        repository = TransactionRepository.getInstance(requireContext());
 
-        repository = net.tiramisu.mdp.repo.TransactionRepository.getInstance(requireContext());
-
+        // find UI
+        edtSearch = view.findViewById(R.id.edtSearch);
+        spinnerSort = view.findViewById(R.id.spinnerSort);
+        chips = view.findViewById(R.id.chips);
         RecyclerView rv = view.findViewById(R.id.rvTransactions);
+
+        // setup RecyclerView
         if (rv != null) {
             rv.setLayoutManager(new LinearLayoutManager(requireContext()));
-
-            // start with empty list; we'll populate from DB
-            List<Transaction> list = new ArrayList<>();
-            adapter = new TransactionAdapter(list);
+            adapter = new TransactionAdapter(new ArrayList<>());
             rv.setAdapter(adapter);
-
-            // determine user id (use FirebaseAuth if available)
-            String userId = "local";
-            try {
-                if (FirebaseAuth.getInstance().getCurrentUser() != null) {
-                    userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-                }
-            } catch (Exception ignored) {}
-
-            // load from repository
-            repository.getByUser(userId, entities -> {
-                Handler h = new Handler(Looper.getMainLooper());
-                h.post(() -> {
-                    // create Transaction objects in reverse order to keep newest first
-                    for (TransactionEntity te : entities) {
-                        int icon = R.drawable.ic_transaction;
-                        if ("Ăn uống".equals(te.category)) icon = R.drawable.ic_food;
-                        if ("Đi lại".equals(te.category)) icon = R.drawable.ic_transport;
-                        if ("Mua sắm".equals(te.category)) icon = R.drawable.ic_shopping;
-                        if ("Giải trí".equals(te.category)) icon = R.drawable.ic_entertainment;
-
-                        Transaction t = new Transaction(te.category != null ? te.category : "Giao dịch", "now", te.amount, icon);
-                        adapter.addTransaction(t);
-                    }
-                });
-            });
-
-            // observe base balance LiveData so UI updates immediately when base changes
-            try {
-                final String uidForLive = userId;
-                repository.getBaseBalanceLive(uidForLive).observe(getViewLifecycleOwner(), (Double base) -> {
-                    Log.d("TransactionsFrag", "baseLive changed for " + uidForLive + " -> " + base);
-                    View root = getView();
-                    if (root != null) refreshSums(root);
-                });
-            } catch (Exception ignored) {}
-
-            // initial sums load
-            refreshSums(view);
-
-            // make RV respect system window insets so last item is not hidden by bottom nav
             ViewCompat.setOnApplyWindowInsetsListener(rv, (v, insets) -> {
                 int bottom = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
                 v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), Math.max(v.getPaddingBottom(), bottom + 16));
                 return insets;
             });
         }
+
+        // wire search to filter live
+        if (edtSearch != null) {
+            edtSearch.addTextChangedListener(new TextWatcher() {
+                @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                @Override public void onTextChanged(CharSequence s, int start, int before, int count) { applyFilters(); }
+                @Override public void afterTextChanged(Editable s) {}
+            });
+        }
+
+        // wire spinner change
+        if (spinnerSort != null) {
+            spinnerSort.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override public void onItemSelected(AdapterView<?> parent, View view1, int position, long id) { applyFilters(); }
+                @Override public void onNothingSelected(AdapterView<?> parent) {}
+            });
+        }
+
+        // wire chips change
+        if (chips != null) {
+            // singleSelection is enabled in layout; simply reapply filters
+            chips.setOnCheckedStateChangeListener((group, checkedIds) -> applyFilters());
+        }
+
+        // load cache from DB initially
+        String userId = "local";
+        try { if (FirebaseAuth.getInstance().getCurrentUser() != null) userId = FirebaseAuth.getInstance().getCurrentUser().getUid(); } catch (Exception ignored) {}
+        repository.getByUser(userId, entities -> {
+            if (entities == null) entities = new ArrayList<>();
+            synchronized (allEntities) {
+                allEntities.clear();
+                allEntities.addAll(entities);
+            }
+            if (getActivity() != null) getActivity().runOnUiThread(this::applyFilters);
+        });
+
+        // also refresh sums (month totals)
+        refreshSums(view);
     }
 
     @Override
     public void onStart() {
         super.onStart();
         if (repository != null) repository.registerChangeListener(repoListener);
-        // ensure we refresh totals when the fragment becomes visible again (catch missed changes)
-        View v = getView();
-        if (v != null) refreshSums(v);
+        View v = getView(); if (v != null) refreshSums(v);
     }
 
     @Override
     public void onStop() {
         super.onStop();
         if (repository != null) repository.unregisterChangeListener(repoListener);
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        View v = getView();
-        if (v != null) refreshSums(v);
     }
 
     private void refreshSums(@NonNull View view) {
@@ -191,68 +170,130 @@ public class TransactionsFragment extends Fragment {
         }
 
         String userId = "local";
-        try { if (com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser() != null) userId = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid(); } catch (Exception ignored) {}
+        try { if (FirebaseAuth.getInstance().getCurrentUser() != null) userId = FirebaseAuth.getInstance().getCurrentUser().getUid(); } catch (Exception ignored) {}
 
         long finalFrom = from, finalTo = to;
         String finalUserId = userId;
         repository.getSumIncomeInRange(userId, finalFrom, finalTo, income -> {
             repository.getSumExpenseInRange(finalUserId, finalFrom, finalTo, expense -> {
-                 if (getActivity() == null) return;
-                 // Prefer cached base balance from LiveData to avoid overwriting user-entered value
-                 getActivity().runOnUiThread(() -> {
-                     NumberFormat fmt = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("vi-VN"));
-                     double inc = income == null ? 0.0 : income;
-                     double exp = expense == null ? 0.0 : expense;
-                     Double cached = null;
-                     try {
-                         cached = repository.getBaseBalanceLive(finalUserId).getValue();
-                     } catch (Exception ignored) {}
-                     if (cached != null) {
-                         double b = cached;
-                         Log.d("TransactionsFrag", "Using cached base for " + finalUserId + " = " + b);
-                         if (tvTotalIncome != null) tvTotalIncome.setText(fmt.format(inc));
-                         if (tvTotalExpense != null) tvTotalExpense.setText(fmt.format(Math.abs(exp)));
-                         if (tvMonthBalance != null) tvMonthBalance.setText(fmt.format(b + inc + exp));
-                         // also set activity-level shared summaries if present
-                         if (getActivity() != null) {
-                             try {
-                                 TextView actInc = getActivity().findViewById(R.id.tvTotalIncome);
-                                 TextView actExp = getActivity().findViewById(R.id.tvTotalExpense);
-                                 TextView actBal = getActivity().findViewById(R.id.tvMonthBalance);
-                                 if (actInc != null) actInc.setText(fmt.format(inc));
-                                 if (actExp != null) actExp.setText(fmt.format(Math.abs(exp)));
-                                 if (actBal != null) actBal.setText(fmt.format(b + inc + exp));
-                             } catch (Exception ignored) {}
-                         }
-                     } else {
-                         Log.d("TransactionsFrag", "Cached base not available for " + finalUserId + "; falling back to storage");
-                         // fallback to reading storage if LiveData not yet initialized
-                         repository.getUserBaseBalance(finalUserId, (Double base) -> {
+                if (getActivity() == null) return;
+                getActivity().runOnUiThread(() -> {
+                    NumberFormat fmt = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("vi-VN"));
+                    double inc = income == null ? 0.0 : income;
+                    double exp = expense == null ? 0.0 : expense;
+                    Double cached = null;
+                    try { cached = repository.getBaseBalanceLive(finalUserId).getValue(); } catch (Exception ignored) {}
+                    if (cached != null) {
+                        double b = cached;
+                        if (tvTotalIncome != null) tvTotalIncome.setText(fmt.format(inc));
+                        if (tvTotalExpense != null) tvTotalExpense.setText(fmt.format(Math.abs(exp)));
+                        if (tvMonthBalance != null) tvMonthBalance.setText(fmt.format(b + inc + exp));
+                    } else {
+                        repository.getUserBaseBalance(finalUserId, (Double base) -> {
                             double b = base == null ? 0.0 : base;
                             if (getActivity() == null) return;
                             getActivity().runOnUiThread(() -> {
                                 if (tvTotalIncome != null) tvTotalIncome.setText(fmt.format(inc));
                                 if (tvTotalExpense != null) tvTotalExpense.setText(fmt.format(Math.abs(exp)));
                                 if (tvMonthBalance != null) tvMonthBalance.setText(fmt.format(b + inc + exp));
-                                // also update activity-level shared summaries
-                                try {
-                                    TextView actInc = getActivity().findViewById(R.id.tvTotalIncome);
-                                    TextView actExp = getActivity().findViewById(R.id.tvTotalExpense);
-                                    TextView actBal = getActivity().findViewById(R.id.tvMonthBalance);
-                                    if (actInc != null) actInc.setText(fmt.format(inc));
-                                    if (actExp != null) actExp.setText(fmt.format(Math.abs(exp)));
-                                    if (actBal != null) actBal.setText(fmt.format(b + inc + exp));
-                                } catch (Exception ignored) {}
                             });
                         });
                     }
                 });
-             });
-         });
+            });
+        });
     }
 
-    // Allow external code to add a transaction to the UI
+    // Apply current search, chip-filter and sort to allEntities and update adapter
+    private void applyFilters() {
+        if (adapter == null) return;
+        View view = getView(); if (view == null) return;
+
+        String q = "";
+        if (edtSearch != null) q = edtSearch.getText().toString().trim().toLowerCase(Locale.ROOT);
+
+        // chip filter
+        String typeFilter = null; // null=all, "income" or "expense"
+        if (chips != null) {
+            int checked = chips.getCheckedChipId();
+            if (checked == R.id.chIncome) typeFilter = "income";
+            else if (checked == R.id.chExpense) typeFilter = "expense";
+        }
+
+        // build filtered pairs (Transaction + timestamp) so we can sort by timestamp if needed
+        List<Pair<Transaction, Long>> pairs = new ArrayList<>();
+        SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy", Locale.forLanguageTag("vi-VN"));
+
+        synchronized (allEntities) {
+            for (TransactionEntity te : allEntities) {
+                if (te == null) continue;
+                if (typeFilter != null && !typeFilter.equalsIgnoreCase(te.type == null ? "" : te.type)) continue;
+
+                String dateStr = "";
+                try { dateStr = df.format(new Date(te.timestamp)); } catch (Exception ignored) {}
+
+                boolean match = q.isEmpty();
+                if (!match) {
+                    String note = te.note == null ? "" : te.note.toLowerCase(Locale.ROOT);
+                    String cat = te.category == null ? "" : te.category.toLowerCase(Locale.ROOT);
+                    if (note.contains(q) || cat.contains(q) || dateStr.toLowerCase(Locale.ROOT).contains(q)) match = true;
+                }
+                if (!match) continue;
+
+                int icon = R.drawable.ic_transaction;
+                if ("Ăn uống".equals(te.category)) icon = R.drawable.ic_food;
+                if ("Đi lại".equals(te.category)) icon = R.drawable.ic_transport;
+                if ("Mua sắm".equals(te.category)) icon = R.drawable.ic_shopping;
+                if ("Giải trí".equals(te.category)) icon = R.drawable.ic_entertainment;
+
+                String title = te.category != null && !te.category.isEmpty() ? te.category : (te.note != null && !te.note.isEmpty() ? te.note : "Giao dịch");
+                Transaction t = new Transaction(title, dateStr, te.amount, icon);
+                pairs.add(new Pair<>(t, te.timestamp));
+            }
+        }
+
+        int sortPos = spinnerSort == null ? 0 : spinnerSort.getSelectedItemPosition();
+        switch (sortPos) {
+            case 0: // Newest
+                Collections.sort(pairs, (p1, p2) -> Long.compare(p2.second, p1.second));
+                break;
+            case 1: // Oldest
+                Collections.sort(pairs, (p1, p2) -> Long.compare(p1.second, p2.second));
+                break;
+            case 2: // Amount asc
+                Collections.sort(pairs, (p1, p2) -> Double.compare(p1.first.amount, p2.first.amount));
+                break;
+            case 3: // Amount desc
+                Collections.sort(pairs, (p1, p2) -> Double.compare(p2.first.amount, p1.first.amount));
+                break;
+            default:
+                break;
+        }
+
+        List<Transaction> out = new ArrayList<>();
+        for (Pair<Transaction, Long> p : pairs) out.add(p.first);
+        adapter.setItems(out);
+    }
+
+    // Called externally (e.g., MainActivity) to optimistically show a newly added transaction.
+    // It updates the adapter immediately and refreshes the cached list from DB to stay authoritative.
     public void addTransaction(Transaction tx) {
+        if (tx == null) return;
+        // optimistic UI update
         if (adapter != null) adapter.addTransaction(tx);
+
+        // Refresh authoritative data from DB in background
+        try {
+            String userId = "local";
+            try { if (FirebaseAuth.getInstance().getCurrentUser() != null) userId = FirebaseAuth.getInstance().getCurrentUser().getUid(); } catch (Exception ignored) {}
+            repository.getByUser(userId, entities -> {
+                if (entities == null) entities = new ArrayList<>();
+                synchronized (allEntities) {
+                    allEntities.clear();
+                    allEntities.addAll(entities);
+                }
+                if (getActivity() != null) getActivity().runOnUiThread(this::applyFilters);
+            });
+        } catch (Exception ignored) {}
     }
 }

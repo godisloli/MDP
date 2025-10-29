@@ -12,6 +12,12 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
+import android.widget.TextView;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -34,6 +40,11 @@ public class AddTransactionActivity extends AppCompatActivity {
 
     private TransactionRepository repository;
 
+    private TextView tvSuggest1;
+    private TextView tvSuggest2;
+    private TextView tvSuggest3;
+    private View llAmountSuggestions;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,6 +58,12 @@ public class AddTransactionActivity extends AppCompatActivity {
         Button btnCancel = findViewById(R.id.btnCancelTransaction);
 
         repository = net.tiramisu.mdp.repo.TransactionRepository.getInstance(getApplicationContext());
+
+        // find suggestion views
+        tvSuggest1 = findViewById(R.id.tvSuggest1);
+        tvSuggest2 = findViewById(R.id.tvSuggest2);
+        tvSuggest3 = findViewById(R.id.tvSuggest3);
+        llAmountSuggestions = findViewById(R.id.llAmountSuggestions);
 
         // simple categories
         String[] categories = new String[]{"Ăn uống", "Đi lại", "Mua sắm", "Học tập", "Giải trí", "Khác"};
@@ -63,6 +80,20 @@ public class AddTransactionActivity extends AppCompatActivity {
         // initialize spinner visibility based on default selection
         int initialChecked = rgType.getCheckedRadioButtonId();
         spinnerCategory.setVisibility((initialChecked == R.id.rbIncome) ? View.GONE : View.VISIBLE);
+
+        // wire amount text changes to update suggestions
+        if (etAmount != null) {
+            etAmount.addTextChangedListener(new android.text.TextWatcher() {
+                @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                @Override public void onTextChanged(CharSequence s, int start, int before, int count) { updateSuggestions(s == null ? "" : s.toString()); }
+                @Override public void afterTextChanged(android.text.Editable s) {}
+            });
+        }
+
+        // set suggestion click listeners
+        if (tvSuggest1 != null) tvSuggest1.setOnClickListener(v -> applySuggestedAmount(tvSuggest1.getTag()));
+        if (tvSuggest2 != null) tvSuggest2.setOnClickListener(v -> applySuggestedAmount(tvSuggest2.getTag()));
+        if (tvSuggest3 != null) tvSuggest3.setOnClickListener(v -> applySuggestedAmount(tvSuggest3.getTag()));
 
         btnSave.setOnClickListener(v -> onSave());
         btnCancel.setOnClickListener(v -> { setResult(Activity.RESULT_CANCELED); finish(); });
@@ -124,5 +155,86 @@ public class AddTransactionActivity extends AppCompatActivity {
                 finish();
             });
         });
+    }
+
+    // parse typed base and update the three suggestion chips
+    private void updateSuggestions(String typed) {
+        if (typed == null) typed = "";
+        String cleaned = typed.replaceAll("[^0-9]", "");
+        if (cleaned.isEmpty()) {
+            if (llAmountSuggestions != null) llAmountSuggestions.setVisibility(View.GONE);
+            return;
+        }
+
+        // parse base number (use up to 7 digits to avoid overflow when multiplied)
+        long base = 0L;
+        try {
+            String take = cleaned.length() > 7 ? cleaned.substring(0, 7) : cleaned;
+            base = Long.parseLong(take);
+        } catch (Exception ignored) {}
+
+        final long MAX = 10_000_000L; // 10^7 cap for suggestions
+
+        // generate candidates using multipliers 10^3 .. 10^6 (can be adjusted)
+        List<Long> candidates = new ArrayList<>();
+        long[] exps = new long[]{3,4,5,6};
+        for (long e : exps) {
+            try {
+                long mul = (long) Math.pow(10, e);
+                long v = base * mul;
+                if (v <= 0) continue;
+                if (v > MAX) continue; // enforce cap
+                candidates.add(v);
+            } catch (Exception ignored) {}
+            if (candidates.size() >= 3) break;
+        }
+
+        // If no candidate (base too large), hide suggestions
+        if (candidates.isEmpty()) {
+            if (llAmountSuggestions != null) llAmountSuggestions.setVisibility(View.GONE);
+            return;
+        }
+
+        NumberFormat nf = NumberFormat.getInstance(Locale.forLanguageTag("vi-VN"));
+        nf.setGroupingUsed(true);
+        DecimalFormat df = (DecimalFormat) nf;
+        df.setMaximumFractionDigits(0);
+
+        // populate up to 3 suggestion views
+        if (tvSuggest1 != null) {
+            if (candidates.size() > 0) {
+                tvSuggest1.setText(df.format(candidates.get(0)));
+                tvSuggest1.setTag(Long.valueOf(candidates.get(0)));
+                tvSuggest1.setVisibility(View.VISIBLE);
+            } else tvSuggest1.setVisibility(View.GONE);
+        }
+        if (tvSuggest2 != null) {
+            if (candidates.size() > 1) {
+                tvSuggest2.setText(df.format(candidates.get(1)));
+                tvSuggest2.setTag(Long.valueOf(candidates.get(1)));
+                tvSuggest2.setVisibility(View.VISIBLE);
+            } else tvSuggest2.setVisibility(View.GONE);
+        }
+        if (tvSuggest3 != null) {
+            if (candidates.size() > 2) {
+                tvSuggest3.setText(df.format(candidates.get(2)));
+                tvSuggest3.setTag(Long.valueOf(candidates.get(2)));
+                tvSuggest3.setVisibility(View.VISIBLE);
+            } else tvSuggest3.setVisibility(View.GONE);
+        }
+
+        if (llAmountSuggestions != null) llAmountSuggestions.setVisibility(View.VISIBLE);
+    }
+
+    private void applySuggestedAmount(Object tag) {
+        if (tag == null || etAmount == null) return;
+        try {
+            long v = (tag instanceof Long) ? (Long) tag : Long.parseLong(tag.toString());
+            etAmount.setText(String.valueOf(v));
+            // move cursor to end
+            etAmount.setSelection(etAmount.getText().length());
+            // hide suggestions after selection
+            if (llAmountSuggestions != null) llAmountSuggestions.setVisibility(View.GONE);
+        } catch (Exception ignored) {}
     }
 }

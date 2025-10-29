@@ -3,26 +3,18 @@
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <!-- Full-height wrapper so we can vertically position the inner content with weighted spacers -->
-    <LinearLayout
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:fillViewport="true">
 
-        <!-- Top weighted spacer: reduced to move content up further. -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="0"
-            android:background="@android:color/transparent" />
-
-        <!-- Inner content container (existing layout moved here) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:padding="16dp">
 
-            <!-- include shared top summaries (add top margin to push the card down) -->
+            <!-- include shared top summaries -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -33,7 +25,7 @@
 
             </LinearLayout>
 
-            <!-- Spacer to move the top card and search components down slightly. Adjust height as needed. -->
+            <!-- Spacer -->
             <View
                 android:layout_width="match_parent"
                 android:layout_height="8dp"
@@ -52,11 +44,17 @@
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="8dp"
                 android:inputType="text"
-                android:autofillHints="none"
-                />
+                android:autofillHints="none" />
 
-            <!-- Filters -->
-            <!-- Make chips horizontally scrollable so they don't get clipped on small screens -->
+            <!-- Sort spinner -->
+            <Spinner
+                android:id="@+id/spinnerSort"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:entries="@array/transaction_sort_options"
+                android:layout_marginBottom="8dp" />
+
+            <!-- Chips -->
             <HorizontalScrollView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -98,23 +96,14 @@
 
             </HorizontalScrollView>
 
-            <!-- Transactions list: center the RecyclerView vertically by placing it inside a weight container -->
-            <LinearLayout
+            <!-- transactions list: let the NestedScrollView handle scrolling -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvTransactions"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center">
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rvTransactions"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:clipToPadding="false"
-                    android:minHeight="200dp"
-                    android:nestedScrollingEnabled="true" />
-
-            </LinearLayout>
+                android:layout_height="wrap_content"
+                android:clipToPadding="false"
+                android:minHeight="200dp"
+                android:nestedScrollingEnabled="false" />
 
             <TextView
                 android:id="@+id/emptyView"
@@ -131,13 +120,6 @@
 
         </LinearLayout>
 
-        <!-- Bottom weighted spacer: reduced to move content up to better align with statistic header. -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="8"
-            android:background="@android:color/transparent" />
-
-    </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
 </merge>

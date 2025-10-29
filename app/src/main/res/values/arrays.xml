@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="transaction_sort_options">
+        <item>Newest</item>
+        <item>Oldest</item>
+        <item>Amount ↑</item>
+        <item>Amount ↓</item>
+    </string-array>
+</resources>
+
