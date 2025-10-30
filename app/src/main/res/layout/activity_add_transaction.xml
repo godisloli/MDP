@@ -48,6 +48,18 @@
             </RadioGroup>
 
             <EditText
+                android:id="@+id/etTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/title_hint"
+                android:textColorHint="@color/textDark"
+                android:inputType="text"
+                android:autofillHints="none"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/edittext_bg"
+                android:padding="12dp" />
+
+            <EditText
                 android:id="@+id/etAmount"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

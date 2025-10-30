@@ -110,6 +110,7 @@
     <string name="income_label">Ingreso</string>
     <string name="expense_label">Gasto</string>
     <string name="amount">Cantidad</string>
+    <string name="title_hint">Título</string>
     <string name="category">Categoría</string>
     <string name="note">Nota</string>
     <string name="no_note">Sin nota</string>
@@ -124,6 +125,13 @@
 
     <!-- Categories -->
     <string name="food">Comida</string>
+    <string name="category_food">Comida</string>
+    <string name="category_transport">Transporte</string>
+    <string name="category_shopping">Compras</string>
+    <string name="category_education">Educación</string>
+    <string name="category_entertainment">Entretenimiento</string>
+    <string name="category_other">Otro</string>
+    <string name="category_income">Ingreso</string>
 
     <!-- Wallet -->
     <string name="wallet_label">Billetera</string>
@@ -141,8 +149,18 @@
     <string name="ic_settings_desc">Icono de configuración</string>
     <string name="ic_calendar_desc">Icono de calendario</string>
 
+    <!-- Notification -->
+    <string name="notification_reminder_title">Resumen de gastos de hoy</string>
+    <string name="notification_expense_label">Gasto</string>
+    <string name="notification_income_label">Ingreso</string>
+    <string name="notification_permission_required">Permiso de notificación requerido</string>
+    <string name="notification_permission_explanation">La aplicación necesita permiso de notificación para recordarle sobre sus gastos diarios. Por favor, conceda el permiso para usar esta función.</string>
+    <string name="notification_action_add">Agregar transacción</string>
+    <string name="notification_action_view">Ver detalles</string>
+
     <!-- Data -->
     <string name="no_data">No hay datos disponibles</string>
+    <string name="no_data_chart">Sin Datos</string>
     <string name="export_csv">Exportar CSV</string>
     <string name="import_csv">Importar CSV</string>
 
@@ -169,5 +187,9 @@
     <string name="total_income_label">Ingreso Total</string>
     <string name="total_expense_label">Gasto Total</string>
     <string name="zero_currency">$0.00</string>
+    <string name="view_details">Ver Detalles</string>
+    <string name="general_group">General</string>
+    <string name="pie_chart_expense_label">Gasto\n(%)</string>
+    <string name="pie_chart_income_label">Ingreso\n(%)</string>
 </resources>
 

@@ -8,7 +8,9 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true">
+        android:fillViewport="true"
+        android:clipToPadding="false"
+        android:paddingBottom="120dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -34,23 +36,11 @@
                 android:layout_height="wrap_content"
                 android:nestedScrollingEnabled="false"
                 android:clipToPadding="false"
-                android:paddingBottom="96dp" />
+                android:paddingBottom="16dp" />
 
         </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Floating action button-like control to open the full month view -->
-    <Button
-        android:id="@+id/btnOpenMonthView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Xem chi tiết"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
-        android:backgroundTint="#FFFFFF"
-        android:textColor="#000000"
-        android:elevation="6dp"
-        app:layout_anchorGravity="bottom|end" />
 
 </FrameLayout>

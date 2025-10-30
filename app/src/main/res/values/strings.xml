@@ -110,6 +110,7 @@
     <string name="income_label">Thu nhập</string>
     <string name="expense_label">Chi tiêu</string>
     <string name="amount">Số tiền</string>
+    <string name="title_hint">Tiêu đề</string>
     <string name="category">Danh mục</string>
     <string name="note">Ghi chú</string>
     <string name="no_note">Không có ghi chú</string>
@@ -124,6 +125,13 @@
 
     <!-- Categories -->
     <string name="food">Ăn uống</string>
+    <string name="category_food">Ăn uống</string>
+    <string name="category_transport">Đi lại</string>
+    <string name="category_shopping">Mua sắm</string>
+    <string name="category_education">Học tập</string>
+    <string name="category_entertainment">Giải trí</string>
+    <string name="category_other">Khác</string>
+    <string name="category_income">Thu nhập</string>
 
     <!-- Wallet -->
     <string name="wallet_label">Ví</string>
@@ -141,8 +149,18 @@
     <string name="ic_settings_desc">Biểu tượng cài đặt</string>
     <string name="ic_calendar_desc">Biểu tượng lịch</string>
 
+    <!-- Notification -->
+    <string name="notification_reminder_title">Tóm tắt chi tiêu hôm nay</string>
+    <string name="notification_expense_label">Chi tiêu</string>
+    <string name="notification_income_label">Thu nhập</string>
+    <string name="notification_permission_required">Cần cấp quyền thông báo</string>
+    <string name="notification_permission_explanation">Ứng dụng cần quyền gửi thông báo để nhắc nhở bạn về chi tiêu hàng ngày. Vui lòng cấp quyền để sử dụng tính năng này.</string>
+    <string name="notification_action_add">Thêm giao dịch</string>
+    <string name="notification_action_view">Xem chi tiết</string>
+
     <!-- Data -->
     <string name="no_data">Không có dữ liệu</string>
+    <string name="no_data_chart">Không có dữ liệu</string>
     <string name="export_csv">Xuất CSV</string>
     <string name="import_csv">Nhập CSV</string>
 
@@ -169,5 +187,9 @@
     <string name="total_income_label">Tổng thu nhập</string>
     <string name="total_expense_label">Tổng chi tiêu</string>
     <string name="zero_currency">0 ₫</string>
+    <string name="view_details">Xem chi tiết</string>
+    <string name="general_group">Chung</string>
+    <string name="pie_chart_expense_label">Chi tiêu\n(%)</string>
+    <string name="pie_chart_income_label">Thu nhập\n(%)</string>
 </resources>
 

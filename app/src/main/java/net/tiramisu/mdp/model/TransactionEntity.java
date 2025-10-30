@@ -16,14 +16,16 @@ public class TransactionEntity {
     public double amount;
     public String note;
     public String category;
+    public String title; // custom title for the transaction
     public long timestamp;
 
-    public TransactionEntity(@NonNull String userId, String type, double amount, String note, String category, long timestamp) {
+    public TransactionEntity(@NonNull String userId, String type, double amount, String note, String category, String title, long timestamp) {
         this.userId = userId;
         this.type = type;
         this.amount = amount;
         this.note = note;
         this.category = category;
+        this.title = title;
         this.timestamp = timestamp;
     }
 }

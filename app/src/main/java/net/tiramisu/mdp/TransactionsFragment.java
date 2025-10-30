@@ -36,6 +36,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import android.content.res.Configuration;
+import android.content.res.Resources;
+
 public class TransactionsFragment extends Fragment {
     private TransactionAdapter adapter;
     private TransactionRepository repository;
@@ -161,9 +164,22 @@ public class TransactionsFragment extends Fragment {
     }
 
     private void refreshSums(@NonNull View view) {
+        TextView tvMonthTitle = view.findViewById(R.id.tvMonthTitle);
         TextView tvTotalIncome = view.findViewById(R.id.tvTotalIncome);
         TextView tvTotalExpense = view.findViewById(R.id.tvTotalExpense);
         TextView tvMonthBalance = view.findViewById(R.id.tvMonthBalance);
+
+        // Update month title with formatted text
+        if (tvMonthTitle != null) {
+            try {
+                LocalDate now = LocalDate.now();
+                String formatted = formatMonthYear(now);
+                tvMonthTitle.setText(formatted);
+            } catch (Exception ex) {
+                // Fallback to simple format if LocalDate fails
+                tvMonthTitle.setText(new SimpleDateFormat("MMMM - yyyy", getCurrentLocale()).format(new Date()));
+            }
+        }
 
         long from, to;
         try {
@@ -232,7 +248,7 @@ public class TransactionsFragment extends Fragment {
 
         // build filtered pairs (Transaction + timestamp) so we can sort by timestamp if needed
         List<Pair<Transaction, Long>> pairs = new ArrayList<>();
-        SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy", Locale.forLanguageTag("vi-VN"));
+        SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy", getCurrentLocale());
 
         synchronized (allEntities) {
             for (TransactionEntity te : allEntities) {
@@ -244,21 +260,32 @@ public class TransactionsFragment extends Fragment {
 
                 boolean match = q.isEmpty();
                 if (!match) {
+                    String title = te.title == null ? "" : normalizeForSearch(te.title);
                     String note = te.note == null ? "" : normalizeForSearch(te.note);
                     String cat = te.category == null ? "" : normalizeForSearch(te.category);
                     String dateNorm = normalizeForSearch(dateStr == null ? "" : dateStr);
-                    if (note.contains(q) || cat.contains(q) || dateNorm.contains(q)) match = true;
+                    if (title.contains(q) || note.contains(q) || cat.contains(q) || dateNorm.contains(q)) match = true;
                 }
                 if (!match) continue;
 
                 // build Transaction model for adapter
                 int icon = R.drawable.ic_transaction;
-                if ("Ăn uống".equals(te.category)) icon = R.drawable.ic_food;
-                if ("Đi lại".equals(te.category)) icon = R.drawable.ic_transport;
-                if ("Mua sắm".equals(te.category)) icon = R.drawable.ic_shopping;
-                if ("Giải trí".equals(te.category)) icon = R.drawable.ic_entertainment;
+                if (CategoryHelper.KEY_FOOD.equals(te.category)) icon = R.drawable.ic_food;
+                if (CategoryHelper.KEY_TRANSPORT.equals(te.category)) icon = R.drawable.ic_transport;
+                if (CategoryHelper.KEY_SHOPPING.equals(te.category)) icon = R.drawable.ic_shopping;
+                if (CategoryHelper.KEY_ENTERTAINMENT.equals(te.category)) icon = R.drawable.ic_entertainment;
 
-                String title = te.category != null && !te.category.isEmpty() ? te.category : (te.note != null && !te.note.isEmpty() ? te.note : "Giao dịch");
+                // Use title if available, otherwise use localized category or note
+                String title;
+                if (te.title != null && !te.title.isEmpty()) {
+                    title = te.title;
+                } else if (te.category != null && !te.category.isEmpty()) {
+                    title = CategoryHelper.getLocalizedCategory(getContext(), te.category);
+                } else if (te.note != null && !te.note.isEmpty()) {
+                    title = te.note;
+                } else {
+                    title = getString(R.string.transaction_title_default);
+                }
                 Transaction t = new Transaction(title, dateStr, te.amount, icon);
                 t.extraLong = te.timestamp;
                 pairs.add(new Pair<>(t, te.timestamp));
@@ -337,6 +364,29 @@ public class TransactionsFragment extends Fragment {
                 }
             });
         } catch (Exception ignored) {}
+    }
+
+    /**
+     * Format month and year with capitalized first letter
+     * e.g., "tháng 10 - 2025" -> "Tháng 10 - 2025"
+     */
+    private String formatMonthYear(LocalDate date) {
+        String formatted = date.format(java.time.format.DateTimeFormatter.ofPattern("MMMM - yyyy", getCurrentLocale()));
+        // Capitalize first letter
+        if (formatted != null && formatted.length() > 0) {
+            return formatted.substring(0, 1).toUpperCase() + formatted.substring(1);
+        }
+        return formatted;
+    }
+
+    /**
+     * Get the current locale based on app configuration
+     */
+    private Locale getCurrentLocale() {
+        if (getContext() == null) return Locale.getDefault();
+        Resources resources = getContext().getResources();
+        Configuration configuration = resources.getConfiguration();
+        return configuration.getLocales().get(0);
     }
 
 }

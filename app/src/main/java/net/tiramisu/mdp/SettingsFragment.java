@@ -1,5 +1,6 @@
 package net.tiramisu.mdp;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
@@ -7,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,8 +16,11 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.material.switchmaterial.SwitchMaterial;
@@ -43,6 +48,7 @@ import java.util.Locale;
  */
 public class SettingsFragment extends Fragment {
     private SharedPreferences sp;
+    private ActivityResultLauncher<String> requestPermissionLauncher;
 
     @Nullable
     @Override
@@ -54,6 +60,31 @@ public class SettingsFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        // Register permission launcher
+        requestPermissionLauncher = registerForActivityResult(
+            new ActivityResultContracts.RequestPermission(),
+            isGranted -> {
+                if (isGranted) {
+                    Toast.makeText(requireContext(), getString(R.string.ok), Toast.LENGTH_SHORT).show();
+                    // Schedule alarm if reminder is enabled
+                    boolean isEnabled = sp.getBoolean("pref_reminder_daily", true);
+                    if (isEnabled) {
+                        ReminderScheduler.scheduleReminderFromPreferences(requireContext());
+                    }
+                } else {
+                    Toast.makeText(requireContext(), getString(R.string.notification_permission_required), Toast.LENGTH_LONG).show();
+                    // Turn off switch if permission denied
+                    View v = getView();
+                    if (v != null) {
+                        SwitchMaterial switchDaily = v.findViewById(R.id.switchDaily);
+                        if (switchDaily != null && switchDaily.isChecked()) {
+                            switchDaily.setChecked(false);
+                        }
+                    }
+                }
+            }
+        );
 
         sp = requireActivity().getSharedPreferences("mdp_prefs", Context.MODE_PRIVATE);
 
@@ -145,13 +176,46 @@ public class SettingsFragment extends Fragment {
         tvCurrency.setOnClickListener(v -> showCurrencyDialog(tvCurrency));
         tvLanguage.setOnClickListener(v -> showLanguageDialog(tvLanguage));
         tvWeekStart.setOnClickListener(v -> showWeekStartDialog(tvWeekStart));
+        tvReminderSummary.setOnClickListener(v -> showTimePicker(tvReminderSummary));
 
         switchDaily.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            sp.edit().putBoolean("pref_reminder_daily", isChecked).apply();
-            String time = sp.getString("pref_reminder_time", getString(R.string.reminder_time_default));
-            String ex = isChecked ? (" " + getString(R.string.reminder_daily)) : "";
-            tvReminderSummary.setText(getString(R.string.reminder_summary_format, getString(R.string.reminder_time_label), time, ex));
-            Toast.makeText(requireContext(), isChecked ? "Bật nhắc hàng ngày" : "Tắt nhắc hàng ngày", Toast.LENGTH_SHORT).show();
+            if (isChecked) {
+                // Check and request notification permission first
+                if (!hasNotificationPermission()) {
+                    requestNotificationPermission();
+                    // Schedule will happen after permission is granted
+                    sp.edit().putBoolean("pref_reminder_daily", isChecked).apply();
+                    String time = sp.getString("pref_reminder_time", getString(R.string.reminder_time_default));
+                    String ex = " " + getString(R.string.reminder_daily);
+                    tvReminderSummary.setText(getString(R.string.reminder_summary_format, getString(R.string.reminder_time_label), time, ex));
+                } else {
+                    // Permission already granted, schedule immediately
+                    sp.edit().putBoolean("pref_reminder_daily", isChecked).apply();
+                    String time = sp.getString("pref_reminder_time", getString(R.string.reminder_time_default));
+                    String ex = " " + getString(R.string.reminder_daily);
+                    tvReminderSummary.setText(getString(R.string.reminder_summary_format, getString(R.string.reminder_time_label), time, ex));
+                    ReminderScheduler.scheduleReminderFromPreferences(requireContext());
+                    Toast.makeText(requireContext(), getString(R.string.reminder_daily) + " " + getString(R.string.ok), Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                sp.edit().putBoolean("pref_reminder_daily", isChecked).apply();
+                String time = sp.getString("pref_reminder_time", getString(R.string.reminder_time_default));
+                tvReminderSummary.setText(getString(R.string.reminder_summary_format, getString(R.string.reminder_time_label), time, ""));
+                ReminderScheduler.cancelReminder(requireContext());
+                Toast.makeText(requireContext(), getString(R.string.reminder_off), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // Test notification button
+        view.findViewById(R.id.btnTestNotification).setOnClickListener(v -> {
+            if (!hasNotificationPermission()) {
+                requestNotificationPermission();
+                // Show toast to inform user
+                Toast.makeText(requireContext(), getString(R.string.notification_permission_required), Toast.LENGTH_LONG).show();
+            } else {
+                NotificationHelper.showTestNotification(requireContext());
+                Toast.makeText(requireContext(), getString(R.string.test_notification), Toast.LENGTH_SHORT).show();
+            }
         });
 
         view.findViewById(R.id.btnLogout).setOnClickListener(v -> {
@@ -253,7 +317,14 @@ public class SettingsFragment extends Fragment {
             sp.edit().putString("pref_reminder_time", formatted).apply();
             String extra = sp.getBoolean("pref_reminder_daily", true) ? (" " + getString(R.string.reminder_daily)) : "";
             tvReminderSummary.setText(getString(R.string.reminder_summary_format, getString(R.string.reminder_time_label), formatted, extra));
-            Toast.makeText(requireContext(), "Thời gian nhắc đã được lưu: " + formatted, Toast.LENGTH_SHORT).show();
+
+            // Reschedule alarm with new time if reminder is enabled
+            boolean isEnabled = sp.getBoolean("pref_reminder_daily", true);
+            if (isEnabled) {
+                ReminderScheduler.scheduleReminder(requireContext(), h, m);
+            }
+
+            Toast.makeText(requireContext(), getString(R.string.reminder_time_label) + ": " + formatted, Toast.LENGTH_SHORT).show();
         }, hour, minute, true);
         tpd.show();
     }
@@ -295,13 +366,56 @@ public class SettingsFragment extends Fragment {
 
     private String mapCurrencyLabel(String cur) {
         if (cur == null) return getString(R.string.currency);
+
+        // If Auto, show "Auto (detected currency)"
+        if ("AUTO".equalsIgnoreCase(cur)) {
+            String detectedCurrency = getAutoCurrencyCode();
+            String currencyName = getCurrencyName(detectedCurrency);
+            return "Auto (" + currencyName + ")";
+        }
+
         switch (cur.toUpperCase(Locale.ROOT)) {
             case "VND": return "Việt Nam Đồng (₫)";
             case "USD": return "USD ($)";
             case "EUR": return "EUR (€)";
             case "CNY": return "CNY (¥)";
-            case "AUTO": return "Auto";
             default: return cur;
+        }
+    }
+
+    /**
+     * Get the currency code that would be used in Auto mode
+     */
+    private String getAutoCurrencyCode() {
+        android.content.res.Configuration config = requireContext().getResources().getConfiguration();
+        Locale currentLocale = config.getLocales().get(0);
+        String language = currentLocale.getLanguage();
+
+        switch (language) {
+            case "en": return "USD";
+            case "vi": return "VND";
+            case "zh": return "CNY";
+            case "es": return "EUR";
+            default:
+                try {
+                    java.util.Currency currency = java.util.Currency.getInstance(currentLocale);
+                    return currency.getCurrencyCode();
+                } catch (Exception e) {
+                    return "VND";
+                }
+        }
+    }
+
+    /**
+     * Get display name for currency code
+     */
+    private String getCurrencyName(String code) {
+        switch (code) {
+            case "VND": return "₫";
+            case "USD": return "$";
+            case "EUR": return "€";
+            case "CNY": return "¥";
+            default: return code;
         }
     }
 
@@ -311,6 +425,50 @@ public class SettingsFragment extends Fragment {
         return getString(R.string.chip_mon);
     }
 
+    /**
+     * Check if notification permission is granted (Android 13+)
+     */
+    private boolean hasNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            return ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED;
+        }
+        return true; // No permission needed before Android 13
+    }
+
+    /**
+     * Request notification permission (Android 13+)
+     */
+    private void requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (!hasNotificationPermission()) {
+                // Show explanation dialog before requesting permission
+                if (shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
+                    showPermissionExplanationDialog();
+                } else {
+                    requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+                }
+            }
+        }
+    }
+
+    /**
+     * Show dialog explaining why notification permission is needed
+     */
+    private void showPermissionExplanationDialog() {
+        new AlertDialog.Builder(requireContext())
+            .setTitle(R.string.notification_permission_required)
+            .setMessage(R.string.notification_permission_explanation)
+            .setPositiveButton(R.string.ok, (dialog, which) -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+                }
+            })
+            .setNegativeButton(R.string.cancel, null)
+            .show();
+    }
 
     private void exportCsv() {
         String userId = "local";
@@ -337,11 +495,12 @@ public class SettingsFragment extends Fragment {
     @NonNull
     private static PrintWriter getPrintWriter(List<TransactionEntity> entities, FileWriter fw) {
         PrintWriter pw = new PrintWriter(fw);
-        pw.println("id,userId,type,amount,category,note,timestamp");
+        pw.println("id,userId,type,amount,category,title,note,timestamp");
         for (TransactionEntity te : entities) {
-            pw.printf(Locale.ROOT, "%d,%s,%s,%.2f,%s,%s,%d\n",
+            pw.printf(Locale.ROOT, "%d,%s,%s,%.2f,%s,%s,%s,%d\n",
                     te.id, te.userId, te.type, te.amount,
                     te.category == null ? "" : te.category.replace(",", " "),
+                    te.title == null ? "" : te.title.replace(",", " "),
                     te.note == null ? "" : te.note.replace(",", " "), te.timestamp);
         }
         pw.flush();

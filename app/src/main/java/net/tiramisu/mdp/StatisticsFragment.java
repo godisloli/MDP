@@ -29,6 +29,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.HashMap;
 
+import android.content.res.Configuration;
+import android.content.res.Resources;
+
 import android.graphics.Color;
 
 import com.github.mikephil.charting.charts.PieChart;
@@ -41,7 +44,8 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 public class StatisticsFragment extends Fragment {
-    public StatisticsFragment() {}
+    public StatisticsFragment() {
+    }
 
     private TransactionRepository repository;
     private long currentFrom, currentTo;
@@ -91,19 +95,23 @@ public class StatisticsFragment extends Fragment {
         }
 
         // determine user id
-        try { if (FirebaseAuth.getInstance().getCurrentUser() != null) currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid(); } catch (Exception ignored) {}
+        try {
+            if (FirebaseAuth.getInstance().getCurrentUser() != null)
+                currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        } catch (Exception ignored) {
+        }
 
         // determine initial month: current month
         LocalDate now = LocalDate.now();
         LocalDate start = now.withDayOfMonth(1);
         LocalDate end = now.withDayOfMonth(now.lengthOfMonth());
         currentFrom = start.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli();
-        currentTo = end.atTime(23,59,59).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        currentTo = end.atTime(23, 59, 59).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
 
         TextView tvMonthTitle = view.findViewById(R.id.tvMonthTitle);
         if (tvMonthTitle != null) {
             tvMonthTitle.setOnClickListener(v -> showMonthPicker());
-            tvMonthTitle.setText(now.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.forLanguageTag("vi-VN"))));
+            tvMonthTitle.setText(formatMonthYear(now));
         }
 
         // find pie charts and configure basic appearance
@@ -117,7 +125,7 @@ public class StatisticsFragment extends Fragment {
                 pieChartExpense.setHoleColor(Color.TRANSPARENT);
                 pieChartExpense.setHoleRadius(48f);
                 pieChartExpense.setTransparentCircleRadius(54f);
-                pieChartExpense.setCenterText("Chi tiêu\n(%)");
+                pieChartExpense.setCenterText(getString(R.string.pie_chart_expense_label));
                 pieChartExpense.setCenterTextSize(14f);
                 pieChartExpense.setEntryLabelColor(Color.DKGRAY);
                 pieChartExpense.setEntryLabelTextSize(12f);
@@ -139,7 +147,7 @@ public class StatisticsFragment extends Fragment {
                 pieChartIncome.setHoleColor(Color.TRANSPARENT);
                 pieChartIncome.setHoleRadius(48f);
                 pieChartIncome.setTransparentCircleRadius(54f);
-                pieChartIncome.setCenterText("Thu nhập\n(%)");
+                pieChartIncome.setCenterText(getString(R.string.pie_chart_income_label));
                 pieChartIncome.setCenterTextSize(14f);
                 pieChartIncome.setEntryLabelColor(Color.DKGRAY);
                 pieChartIncome.setEntryLabelTextSize(12f);
@@ -154,32 +162,29 @@ public class StatisticsFragment extends Fragment {
                 pieChartIncome.setCenterTextColor(Color.DKGRAY);
                 pieChartIncome.animateY(700);
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         // observe base balance LiveData so displayed balance updates immediately when base changes
         try {
             String userId = "local";
-            try { if (FirebaseAuth.getInstance().getCurrentUser() != null) userId = FirebaseAuth.getInstance().getCurrentUser().getUid(); } catch (Exception ignored) {}
+            try {
+                if (FirebaseAuth.getInstance().getCurrentUser() != null)
+                    userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            } catch (Exception ignored) {
+            }
             final String uidForLive = userId;
             repository.getBaseBalanceLive(uidForLive).observe(getViewLifecycleOwner(), (Double base) -> {
                 android.util.Log.d("StatisticsFrag", "baseLive changed for " + uidForLive + " -> " + base);
                 View root = getView();
                 if (root != null) refreshForCurrentMonth(root);
             });
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         // load sums and category breakdown
         refreshForCurrentMonth(view);
 
-        // button still opens full month view
-        Button btn = view.findViewById(R.id.btnOpenMonthView);
-        if (btn != null) {
-            btn.setOnClickListener(v -> {
-                Intent i = new Intent(requireContext(), ViewOneMonthActivity.class);
-                if (tvMonthTitle != null) i.putExtra("EXTRA_MONTH_LABEL", tvMonthTitle.getText().toString());
-                startActivity(i);
-            });
-        }
     }
 
     @Override
@@ -203,33 +208,47 @@ public class StatisticsFragment extends Fragment {
 
         // fetch totals
         String userId = "local";
-        try { if (FirebaseAuth.getInstance().getCurrentUser() != null) userId = FirebaseAuth.getInstance().getCurrentUser().getUid(); } catch (Exception ignored) {}
+        try {
+            if (FirebaseAuth.getInstance().getCurrentUser() != null)
+                userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        } catch (Exception ignored) {
+        }
         final String effectiveUser = userId;
         repository.getSumIncomeInRange(effectiveUser, currentFrom, currentTo, (Double income) -> repository.getSumExpenseInRange(effectiveUser, currentFrom, currentTo, (Double expense) -> {
             if (getActivity() == null) return;
             getActivity().runOnUiThread(() -> {
                 // prefer cached LiveData base to avoid race with remote fetch
                 Double cached = null;
-                try { cached = repository.getBaseBalanceLive(effectiveUser).getValue(); } catch (Exception ignored) {}
+                try {
+                    cached = repository.getBaseBalanceLive(effectiveUser).getValue();
+                } catch (Exception ignored) {
+                }
                 // update last-known sums
                 lastIncome = income == null ? 0.0 : income;
                 lastExpense = expense == null ? 0.0 : expense;
                 if (cached != null) {
                     double b = cached;
                     android.util.Log.d("StatisticsFrag", "Using cached base for " + effectiveUser + " = " + b);
-                    if (tvTotalIncome != null) tvTotalIncome.setText(CurrencyUtils.formatCurrency(getContext(), lastIncome));
-                    if (tvTotalExpense != null) tvTotalExpense.setText(CurrencyUtils.formatCurrency(getContext(), Math.abs(lastExpense)));
-                    if (tvMonthBalance != null) tvMonthBalance.setText(CurrencyUtils.formatCurrency(getContext(), b + lastIncome + lastExpense));
+                    if (tvTotalIncome != null)
+                        tvTotalIncome.setText(CurrencyUtils.formatCurrency(getContext(), lastIncome));
+                    if (tvTotalExpense != null)
+                        tvTotalExpense.setText(CurrencyUtils.formatCurrency(getContext(), Math.abs(lastExpense)));
+                    if (tvMonthBalance != null)
+                        tvMonthBalance.setText(CurrencyUtils.formatCurrency(getContext(), b + lastIncome + lastExpense));
                     // also update activity-level shared summaries if present
                     if (getActivity() != null) {
                         try {
                             TextView actInc = getActivity().findViewById(R.id.tvTotalIncome);
                             TextView actExp = getActivity().findViewById(R.id.tvTotalExpense);
                             TextView actBal = getActivity().findViewById(R.id.tvMonthBalance);
-                            if (actInc != null) actInc.setText(CurrencyUtils.formatCurrency(getActivity(), lastIncome));
-                            if (actExp != null) actExp.setText(CurrencyUtils.formatCurrency(getActivity(), Math.abs(lastExpense)));
-                            if (actBal != null) actBal.setText(CurrencyUtils.formatCurrency(getActivity(), b + lastIncome + lastExpense));
-                        } catch (Exception ignored) {}
+                            if (actInc != null)
+                                actInc.setText(CurrencyUtils.formatCurrency(getActivity(), lastIncome));
+                            if (actExp != null)
+                                actExp.setText(CurrencyUtils.formatCurrency(getActivity(), Math.abs(lastExpense)));
+                            if (actBal != null)
+                                actBal.setText(CurrencyUtils.formatCurrency(getActivity(), b + lastIncome + lastExpense));
+                        } catch (Exception ignored) {
+                        }
                     }
                 } else {
                     android.util.Log.d("StatisticsFrag", "Cached base not available for " + effectiveUser + "; falling back to storage");
@@ -237,19 +256,26 @@ public class StatisticsFragment extends Fragment {
                         double b = base == null ? 0.0 : base;
                         if (getActivity() == null) return;
                         getActivity().runOnUiThread(() -> {
-                            if (tvTotalIncome != null) tvTotalIncome.setText(CurrencyUtils.formatCurrency(getContext(), lastIncome));
-                            if (tvTotalExpense != null) tvTotalExpense.setText(CurrencyUtils.formatCurrency(getContext(), Math.abs(lastExpense)));
-                            if (tvMonthBalance != null) tvMonthBalance.setText(CurrencyUtils.formatCurrency(getContext(), b + lastIncome + lastExpense));
+                            if (tvTotalIncome != null)
+                                tvTotalIncome.setText(CurrencyUtils.formatCurrency(getContext(), lastIncome));
+                            if (tvTotalExpense != null)
+                                tvTotalExpense.setText(CurrencyUtils.formatCurrency(getContext(), Math.abs(lastExpense)));
+                            if (tvMonthBalance != null)
+                                tvMonthBalance.setText(CurrencyUtils.formatCurrency(getContext(), b + lastIncome + lastExpense));
                             // also update activity-level shared summaries
                             if (getActivity() != null) {
                                 try {
                                     TextView actInc = getActivity().findViewById(R.id.tvTotalIncome);
                                     TextView actExp = getActivity().findViewById(R.id.tvTotalExpense);
                                     TextView actBal = getActivity().findViewById(R.id.tvMonthBalance);
-                                    if (actInc != null) actInc.setText(CurrencyUtils.formatCurrency(getActivity(), lastIncome));
-                                    if (actExp != null) actExp.setText(CurrencyUtils.formatCurrency(getActivity(), Math.abs(lastExpense)));
-                                    if (actBal != null) actBal.setText(CurrencyUtils.formatCurrency(getActivity(), b + lastIncome + lastExpense));
-                                } catch (Exception ignored) {}
+                                    if (actInc != null)
+                                        actInc.setText(CurrencyUtils.formatCurrency(getActivity(), lastIncome));
+                                    if (actExp != null)
+                                        actExp.setText(CurrencyUtils.formatCurrency(getActivity(), Math.abs(lastExpense)));
+                                    if (actBal != null)
+                                        actBal.setText(CurrencyUtils.formatCurrency(getActivity(), b + lastIncome + lastExpense));
+                                } catch (Exception ignored) {
+                                }
                             }
                         });
                     });
@@ -265,13 +291,19 @@ public class StatisticsFragment extends Fragment {
             getActivity().runOnUiThread(() -> {
                 // default categories (keep in sync with AddTransactionActivity)
                 List<String> defaults = new ArrayList<>();
-                defaults.add("Ăn uống"); defaults.add("Đi lại"); defaults.add("Mua sắm"); defaults.add("Học tập"); defaults.add("Giải trí"); defaults.add("Khác"); defaults.add("Thu nhập");
+                defaults.add(CategoryHelper.KEY_FOOD);
+                defaults.add(CategoryHelper.KEY_TRANSPORT);
+                defaults.add(CategoryHelper.KEY_SHOPPING);
+                defaults.add(CategoryHelper.KEY_EDUCATION);
+                defaults.add(CategoryHelper.KEY_ENTERTAINMENT);
+                defaults.add(CategoryHelper.KEY_OTHER);
+                defaults.add(CategoryHelper.KEY_INCOME);
 
                 // map returned sums by category
                 java.util.Map<String, Double> map = new java.util.HashMap<>();
                 for (CategorySum cs : finalList) {
                     if (cs == null) continue;
-                    String k = cs.category == null ? "Khác" : cs.category;
+                    String k = cs.category == null ? CategoryHelper.KEY_OTHER : cs.category;
                     map.put(k, cs.total == null ? 0.0 : cs.total);
                 }
 
@@ -309,12 +341,16 @@ public class StatisticsFragment extends Fragment {
                 // populate expense pie
                 try {
                     populatePieChart(pieChartExpense, expenseMap);
-                } catch (Exception ex) { android.util.Log.d("StatisticsFrag","populate expense pie failed: "+ex.getMessage()); }
+                } catch (Exception ex) {
+                    android.util.Log.d("StatisticsFrag", "populate expense pie failed: " + ex.getMessage());
+                }
 
                 // populate income pie
                 try {
                     populatePieChart(pieChartIncome, incomeMap);
-                } catch (Exception ex) { android.util.Log.d("StatisticsFrag","populate income pie failed: "+ex.getMessage()); }
+                } catch (Exception ex) {
+                    android.util.Log.d("StatisticsFrag", "populate income pie failed: " + ex.getMessage());
+                }
             });
         });
     }
@@ -331,11 +367,17 @@ public class StatisticsFragment extends Fragment {
             Calendar cal = Calendar.getInstance();
             cal.setTimeInMillis(startTs);
             cal.set(Calendar.DAY_OF_MONTH, 1);
-            cal.set(Calendar.HOUR_OF_DAY, 0); cal.set(Calendar.MINUTE, 0); cal.set(Calendar.SECOND,0); cal.set(Calendar.MILLISECOND,0);
+            cal.set(Calendar.HOUR_OF_DAY, 0);
+            cal.set(Calendar.MINUTE, 0);
+            cal.set(Calendar.SECOND, 0);
+            cal.set(Calendar.MILLISECOND, 0);
             long s = cal.getTimeInMillis();
             Calendar now = Calendar.getInstance();
             now.set(Calendar.DAY_OF_MONTH, 1);
-            now.set(Calendar.HOUR_OF_DAY, 0); now.set(Calendar.MINUTE, 0); now.set(Calendar.SECOND,0); now.set(Calendar.MILLISECOND,0);
+            now.set(Calendar.HOUR_OF_DAY, 0);
+            now.set(Calendar.MINUTE, 0);
+            now.set(Calendar.SECOND, 0);
+            now.set(Calendar.MILLISECOND, 0);
             long endStart = now.getTimeInMillis();
 
             // Ensure at least one month
@@ -346,13 +388,15 @@ public class StatisticsFragment extends Fragment {
             while (iter.getTimeInMillis() <= endStart) {
                 int y = iter.get(Calendar.YEAR);
                 int m = iter.get(Calendar.MONTH); // 0-based
-                LocalDate ld = LocalDate.of(y, m+1, 1);
-                String label = ld.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.forLanguageTag("vi-VN")));
+                LocalDate ld = LocalDate.of(y, m + 1, 1);
+                String label = formatMonthYear(ld);
                 // compute from/to
                 long f = iter.getTimeInMillis();
                 Calendar endCal = (Calendar) iter.clone();
                 endCal.set(Calendar.DAY_OF_MONTH, endCal.getActualMaximum(Calendar.DAY_OF_MONTH));
-                endCal.set(Calendar.HOUR_OF_DAY,23); endCal.set(Calendar.MINUTE,59); endCal.set(Calendar.SECOND,59);
+                endCal.set(Calendar.HOUR_OF_DAY, 23);
+                endCal.set(Calendar.MINUTE, 59);
+                endCal.set(Calendar.SECOND, 59);
                 long t = endCal.getTimeInMillis();
                 labels.add(label);
                 monthFrom.add(f);
@@ -362,7 +406,7 @@ public class StatisticsFragment extends Fragment {
             }
 
             if (labels.isEmpty()) {
-                labels.add(LocalDate.now().format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.forLanguageTag("vi-VN"))));
+                labels.add(formatMonthYear(LocalDate.now()));
                 monthFrom.add(currentFrom);
                 monthTo.add(currentTo);
             }
@@ -400,20 +444,29 @@ public class StatisticsFragment extends Fragment {
         TextView tvTotalIncome = v.findViewById(R.id.tvTotalIncome);
         TextView tvTotalExpense = v.findViewById(R.id.tvTotalExpense);
         Double cached = null;
-        try { cached = repository.getBaseBalanceLive(userId).getValue(); } catch (Exception ignored) {}
+        try {
+            cached = repository.getBaseBalanceLive(userId).getValue();
+        } catch (Exception ignored) {
+        }
         if (cached != null) {
             double b = cached;
-            if (tvTotalIncome != null) tvTotalIncome.setText(CurrencyUtils.formatCurrency(getContext(), lastIncome));
-            if (tvTotalExpense != null) tvTotalExpense.setText(CurrencyUtils.formatCurrency(getContext(), Math.abs(lastExpense)));
-            if (tvMonthBalance != null) tvMonthBalance.setText(CurrencyUtils.formatCurrency(getContext(), b + lastIncome + lastExpense));
+            if (tvTotalIncome != null)
+                tvTotalIncome.setText(CurrencyUtils.formatCurrency(getContext(), lastIncome));
+            if (tvTotalExpense != null)
+                tvTotalExpense.setText(CurrencyUtils.formatCurrency(getContext(), Math.abs(lastExpense)));
+            if (tvMonthBalance != null)
+                tvMonthBalance.setText(CurrencyUtils.formatCurrency(getContext(), b + lastIncome + lastExpense));
         } else {
             repository.getUserBaseBalance(userId, (Double base) -> {
                 double b = base == null ? 0.0 : base;
                 if (getActivity() == null) return;
                 getActivity().runOnUiThread(() -> {
-                    if (tvTotalIncome != null) tvTotalIncome.setText(CurrencyUtils.formatCurrency(getContext(), lastIncome));
-                    if (tvTotalExpense != null) tvTotalExpense.setText(CurrencyUtils.formatCurrency(getContext(), Math.abs(lastExpense)));
-                    if (tvMonthBalance != null) tvMonthBalance.setText(CurrencyUtils.formatCurrency(getContext(), b + lastIncome + lastExpense));
+                    if (tvTotalIncome != null)
+                        tvTotalIncome.setText(CurrencyUtils.formatCurrency(getContext(), lastIncome));
+                    if (tvTotalExpense != null)
+                        tvTotalExpense.setText(CurrencyUtils.formatCurrency(getContext(), Math.abs(lastExpense)));
+                    if (tvMonthBalance != null)
+                        tvMonthBalance.setText(CurrencyUtils.formatCurrency(getContext(), b + lastIncome + lastExpense));
                 });
             });
         }
@@ -423,7 +476,7 @@ public class StatisticsFragment extends Fragment {
         if (chart == null) return;
         if (data == null || data.isEmpty()) {
             chart.clear();
-            chart.setCenterText("Không có dữ liệu");
+            chart.setCenterText(getString(R.string.no_data_chart));
             chart.invalidate();
             return;
         }
@@ -433,7 +486,10 @@ public class StatisticsFragment extends Fragment {
         for (Map.Entry<String, Double> e : data.entrySet()) {
             double v = e.getValue() == null ? 0.0 : e.getValue();
             if (v <= 0.0) continue;
-            entries.add(new PieEntry((float)v, e.getKey()));
+            // Use localized category name for the label
+            String categoryKey = e.getKey();
+            String localizedName = CategoryHelper.getLocalizedCategory(getContext(), categoryKey);
+            entries.add(new PieEntry((float) v, localizedName));
         }
 
         PieDataSet set = new PieDataSet(entries, "");
@@ -457,7 +513,8 @@ public class StatisticsFragment extends Fragment {
         }
         set.setColors(colors);
         // value color: white on dark slices (better contrast), otherwise black
-        if (chart == pieChartExpense || chart == pieChartIncome) set.setValueTextColor(Color.WHITE); else set.setValueTextColor(Color.BLACK);
+        if (chart == pieChartExpense || chart == pieChartIncome) set.setValueTextColor(Color.WHITE);
+        else set.setValueTextColor(Color.BLACK);
         set.setValueTextSize(12f);
 
         PieData dataObj = new PieData(set);
@@ -467,4 +524,26 @@ public class StatisticsFragment extends Fragment {
         chart.invalidate();
     }
 
+    /**
+     * Format month and year with capitalized first letter
+     * e.g., "tháng 10 - 2025" -> "Tháng 10 - 2025"
+     */
+    private String formatMonthYear(LocalDate date) {
+        String formatted = date.format(DateTimeFormatter.ofPattern("MMMM - yyyy", getCurrentLocale()));
+        // Capitalize first letter
+        if (formatted != null && formatted.length() > 0) {
+            return formatted.substring(0, 1).toUpperCase() + formatted.substring(1);
+        }
+        return formatted;
+    }
+
+    /**
+     * Get the current locale based on app configuration
+     */
+    private Locale getCurrentLocale() {
+        if (getContext() == null) return Locale.getDefault();
+        Resources resources = getContext().getResources();
+        Configuration configuration = resources.getConfiguration();
+        return configuration.getLocales().get(0);
+    }
 }

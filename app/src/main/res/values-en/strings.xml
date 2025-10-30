@@ -110,6 +110,7 @@
     <string name="income_label">Income</string>
     <string name="expense_label">Expense</string>
     <string name="amount">Amount</string>
+    <string name="title_hint">Title</string>
     <string name="category">Category</string>
     <string name="note">Note</string>
     <string name="no_note">No note</string>
@@ -124,6 +125,13 @@
 
     <!-- Categories -->
     <string name="food">Food</string>
+    <string name="category_food">Food</string>
+    <string name="category_transport">Transport</string>
+    <string name="category_shopping">Shopping</string>
+    <string name="category_education">Education</string>
+    <string name="category_entertainment">Entertainment</string>
+    <string name="category_other">Other</string>
+    <string name="category_income">Income</string>
 
     <!-- Wallet -->
     <string name="wallet_label">Wallet</string>
@@ -141,8 +149,18 @@
     <string name="ic_settings_desc">Settings icon</string>
     <string name="ic_calendar_desc">Calendar icon</string>
 
+    <!-- Notification -->
+    <string name="notification_reminder_title">Today\'s Expense Summary</string>
+    <string name="notification_expense_label">Expense</string>
+    <string name="notification_income_label">Income</string>
+    <string name="notification_permission_required">Notification permission required</string>
+    <string name="notification_permission_explanation">The app needs notification permission to remind you about your daily expenses. Please grant permission to use this feature.</string>
+    <string name="notification_action_add">Add Transaction</string>
+    <string name="notification_action_view">View Details</string>
+
     <!-- Data -->
     <string name="no_data">No data available</string>
+    <string name="no_data_chart">No Data</string>
     <string name="export_csv">Export CSV</string>
     <string name="import_csv">Import CSV</string>
 
@@ -169,5 +187,9 @@
     <string name="total_income_label">Total Income</string>
     <string name="total_expense_label">Total Expense</string>
     <string name="zero_currency">$0.00</string>
+    <string name="view_details">View Details</string>
+    <string name="general_group">General</string>
+    <string name="pie_chart_expense_label">Expense\n(%)</string>
+    <string name="pie_chart_income_label">Income\n(%)</string>
 </resources>
 

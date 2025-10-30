@@ -27,18 +27,49 @@ public class CurrencyUtils {
     // Format an amount that is stored in the app's base currency (VND) into the user's selected currency.
     public static String formatCurrency(Context ctx, double amountInVnd) {
         String pref = getPrefCurrency(ctx);
-        // if auto or same as VND, just format as VND (or locale default for auto)
+
+        // if auto, determine currency based on current locale/language
         if ("auto".equalsIgnoreCase(pref)) {
-            NumberFormat nf = NumberFormat.getCurrencyInstance(Locale.getDefault());
-            return nf.format(amountInVnd);
+            String currencyCode = getCurrencyCodeForLocale(ctx);
+            return formatWithCurrency(amountInVnd, currencyCode);
         }
 
         String code = pref.toUpperCase(Locale.ROOT);
-        if ("AUTO".equals(code)) {
-            NumberFormat nf = NumberFormat.getCurrencyInstance(Locale.getDefault());
-            return nf.format(amountInVnd);
-        }
+        return formatWithCurrency(amountInVnd, code);
+    }
 
+    /**
+     * Get appropriate currency code based on current locale
+     */
+    private static String getCurrencyCodeForLocale(Context ctx) {
+        Locale currentLocale = ctx.getResources().getConfiguration().getLocales().get(0);
+        String language = currentLocale.getLanguage();
+
+        // Map language to currency
+        switch (language) {
+            case "en":
+                return "USD"; // English -> US Dollar
+            case "vi":
+                return "VND"; // Vietnamese -> Vietnamese Dong
+            case "zh":
+                return "CNY"; // Chinese -> Chinese Yuan
+            case "es":
+                return "EUR"; // Spanish -> Euro
+            default:
+                // Try to get currency from locale
+                try {
+                    Currency currency = Currency.getInstance(currentLocale);
+                    return currency.getCurrencyCode();
+                } catch (Exception e) {
+                    return "VND"; // Fallback to VND
+                }
+        }
+    }
+
+    /**
+     * Format amount with specific currency code
+     */
+    private static String formatWithCurrency(double amountInVnd, String code) {
         // Convert from VND into target currency using simple table
         double converted = amountInVnd;
         Map<String, Double> rates = ratesPerVnd();

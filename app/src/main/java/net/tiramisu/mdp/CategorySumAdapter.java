@@ -42,8 +42,10 @@ public class CategorySumAdapter extends RecyclerView.Adapter<CategorySumAdapter.
     @Override
     public void onBindViewHolder(@NonNull VH holder, int position) {
         CategorySum s = items.get(position);
-        String cat = s.category == null ? "Khác" : s.category;
-        holder.tvCategory.setText(cat);
+        String catKey = s.category == null ? CategoryHelper.KEY_OTHER : s.category;
+        // Use localized category name
+        String catDisplay = CategoryHelper.getLocalizedCategory(holder.itemView.getContext(), catKey);
+        holder.tvCategory.setText(catDisplay);
         double val = s.total == null ? 0.0 : s.total;
         // Format using CurrencyUtils
         holder.tvAmount.setText(CurrencyUtils.formatCurrency(holder.itemView.getContext(), val));

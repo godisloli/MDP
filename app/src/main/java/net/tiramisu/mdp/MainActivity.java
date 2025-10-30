@@ -82,6 +82,9 @@ public class MainActivity extends AppCompatActivity {
             EdgeToEdge.enable(this);
             setContentView(R.layout.activity_main);
 
+            // Schedule daily reminder alarm if enabled
+            ReminderScheduler.scheduleReminderFromPreferences(this);
+
             viewPager = findViewById(R.id.viewPager);
             bottomNav = findViewById(R.id.bottomNav);
             fabAdd = findViewById(R.id.fabAdd);
@@ -131,15 +134,17 @@ public class MainActivity extends AppCompatActivity {
                                     TransactionsFragment tf = (TransactionsFragment) f;
                                     // choose icon/title based on type
                                     int icon = R.drawable.ic_transaction;
-                                    String displayTitle = title != null ? title : category;
+                                    String displayTitle = title != null ? title : CategoryHelper.getLocalizedCategory(this, category);
                                     if (isIncome) {
                                         icon = R.drawable.ic_wallet;
-                                        if (displayTitle == null || displayTitle.isEmpty()) displayTitle = "Thu nhập";
+                                        if (displayTitle == null || displayTitle.isEmpty()) {
+                                            displayTitle = CategoryHelper.getLocalizedCategory(this, CategoryHelper.KEY_INCOME);
+                                        }
                                     } else {
-                                        if ("Ăn uống".equals(category)) icon = R.drawable.ic_food;
-                                        if ("Đi lại".equals(category)) icon = R.drawable.ic_transport;
-                                        if ("Mua sắm".equals(category)) icon = R.drawable.ic_shopping;
-                                        if ("Giải trí".equals(category)) icon = R.drawable.ic_entertainment;
+                                        if (CategoryHelper.KEY_FOOD.equals(category)) icon = R.drawable.ic_food;
+                                        if (CategoryHelper.KEY_TRANSPORT.equals(category)) icon = R.drawable.ic_transport;
+                                        if (CategoryHelper.KEY_SHOPPING.equals(category)) icon = R.drawable.ic_shopping;
+                                        if (CategoryHelper.KEY_ENTERTAINMENT.equals(category)) icon = R.drawable.ic_entertainment;
                                     }
 
                                     Transaction tx = new Transaction(displayTitle, "now", amount, icon);

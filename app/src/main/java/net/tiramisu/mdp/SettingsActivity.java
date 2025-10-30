@@ -202,11 +202,12 @@ public class SettingsActivity extends AppCompatActivity {
                 File f = new File(getFilesDir(), "transactions_" + stamp + ".csv");
                 FileWriter fw = new FileWriter(f);
                 PrintWriter pw = new PrintWriter(fw);
-                pw.println("id,userId,type,amount,category,note,timestamp");
+                pw.println("id,userId,type,amount,category,title,note,timestamp");
                 for (TransactionEntity te : entities) {
-                    pw.printf(Locale.ROOT, "%d,%s,%s,%.2f,%s,%s,%d\n",
+                    pw.printf(Locale.ROOT, "%d,%s,%s,%.2f,%s,%s,%s,%d\n",
                             te.id, te.userId, te.type, te.amount,
                             te.category == null ? "" : te.category.replace(",", " "),
+                            te.title == null ? "" : te.title.replace(",", " "),
                             te.note == null ? "" : te.note.replace(",", " "), te.timestamp);
                 }
                 pw.flush(); pw.close(); fw.close();

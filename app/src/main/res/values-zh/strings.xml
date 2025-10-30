@@ -110,6 +110,7 @@
     <string name="income_label">收入</string>
     <string name="expense_label">支出</string>
     <string name="amount">金额</string>
+    <string name="title_hint">标题</string>
     <string name="category">类别</string>
     <string name="note">备注</string>
     <string name="no_note">无备注</string>
@@ -124,6 +125,13 @@
 
     <!-- Categories -->
     <string name="food">食品</string>
+    <string name="category_food">食品</string>
+    <string name="category_transport">交通</string>
+    <string name="category_shopping">购物</string>
+    <string name="category_education">教育</string>
+    <string name="category_entertainment">娱乐</string>
+    <string name="category_other">其他</string>
+    <string name="category_income">收入</string>
 
     <!-- Wallet -->
     <string name="wallet_label">钱包</string>
@@ -141,8 +149,18 @@
     <string name="ic_settings_desc">设置图标</string>
     <string name="ic_calendar_desc">日历图标</string>
 
+    <!-- Notification -->
+    <string name="notification_reminder_title">今日支出摘要</string>
+    <string name="notification_expense_label">支出</string>
+    <string name="notification_income_label">收入</string>
+    <string name="notification_permission_required">需要通知权限</string>
+    <string name="notification_permission_explanation">应用需要通知权限来提醒您每日支出。请授予权限以使用此功能。</string>
+    <string name="notification_action_add">添加交易</string>
+    <string name="notification_action_view">查看详情</string>
+
     <!-- Data -->
     <string name="no_data">无可用数据</string>
+    <string name="no_data_chart">无数据</string>
     <string name="export_csv">导出 CSV</string>
     <string name="import_csv">导入 CSV</string>
 
@@ -169,5 +187,9 @@
     <string name="total_income_label">总收入</string>
     <string name="total_expense_label">总支出</string>
     <string name="zero_currency">¥0.00</string>
+    <string name="view_details">查看详情</string>
+    <string name="general_group">通用</string>
+    <string name="pie_chart_expense_label">支出\n(%)</string>
+    <string name="pie_chart_income_label">收入\n(%)</string>
 </resources>
 

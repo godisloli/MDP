@@ -3,6 +3,8 @@ package net.tiramisu.mdp;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -35,6 +37,7 @@ public class AddTransactionActivity extends AppCompatActivity {
     public static final String EXTRA_NOTE = "EXTRA_NOTE";
 
     private RadioGroup rgType;
+    private EditText etTitle;
     private EditText etAmount;
     private EditText etNote;
     private Spinner spinnerCategory;
@@ -52,6 +55,7 @@ public class AddTransactionActivity extends AppCompatActivity {
         setContentView(R.layout.activity_add_transaction);
 
         rgType = findViewById(R.id.rgType);
+        etTitle = findViewById(R.id.etTitle);
         etAmount = findViewById(R.id.etAmount);
         etNote = findViewById(R.id.etNote);
         spinnerCategory = findViewById(R.id.spinnerCategory);
@@ -66,8 +70,8 @@ public class AddTransactionActivity extends AppCompatActivity {
         tvSuggest3 = findViewById(R.id.tvSuggest3);
         llAmountSuggestions = findViewById(R.id.llAmountSuggestions);
 
-        // simple categories
-        String[] categories = new String[]{"Ăn uống", "Đi lại", "Mua sắm", "Học tập", "Giải trí", "Khác"};
+        // simple categories - use localized names
+        String[] categories = CategoryHelper.getLocalizedCategories(this);
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, categories);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerCategory.setAdapter(adapter);
@@ -121,16 +125,38 @@ public class AddTransactionActivity extends AppCompatActivity {
         boolean isIncome = checked == R.id.rbIncome;
         if (!isIncome) amount = -Math.abs(amount);
 
+        String title = etTitle.getText() == null ? "" : etTitle.getText().toString().trim();
         String note = etNote.getText() == null ? "" : etNote.getText().toString().trim();
-        String category = (String) spinnerCategory.getSelectedItem();
+
+        // Get selected category and convert from localized name back to key for storage
+        String categoryDisplayName = (String) spinnerCategory.getSelectedItem();
+        String category = CategoryHelper.KEY_OTHER; // default
+
+        if (!isIncome && categoryDisplayName != null) {
+            // Find matching key for the localized name
+            String[] keys = CategoryHelper.getCategoryKeys();
+            String[] localizedNames = CategoryHelper.getLocalizedCategories(this);
+            for (int i = 0; i < localizedNames.length; i++) {
+                if (localizedNames[i].equals(categoryDisplayName)) {
+                    category = keys[i];
+                    break;
+                }
+            }
+        }
+
         if (isIncome) {
             // incomes don't need category; set a default title/category
-            category = "Thu nhập";
+            category = CategoryHelper.KEY_INCOME;
+        }
+
+        // If no title is provided, use category as title
+        if (TextUtils.isEmpty(title)) {
+            title = category;
         }
 
         // Prepare result intent
         Intent out = new Intent();
-        out.putExtra(EXTRA_TITLE, category);
+        out.putExtra(EXTRA_TITLE, title);
         out.putExtra(EXTRA_DATE, "now");
         out.putExtra(EXTRA_AMOUNT, amount);
         out.putExtra(EXTRA_IS_INCOME, isIncome);
@@ -146,7 +172,7 @@ public class AddTransactionActivity extends AppCompatActivity {
                 userId = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid();
             }
         } catch (Exception ignored) {}
-        TransactionEntity t = new TransactionEntity(userId, type, amount, note, category, ts);
+        TransactionEntity t = new TransactionEntity(userId, type, amount, note, category, title, ts);
 
         // insert and on callback finish activity on UI thread with result
         repository.insert(t, () -> {
@@ -196,7 +222,7 @@ public class AddTransactionActivity extends AppCompatActivity {
             return;
         }
 
-        NumberFormat nf = NumberFormat.getInstance(Locale.forLanguageTag("vi-VN"));
+        NumberFormat nf = NumberFormat.getInstance(getCurrentLocale());
         nf.setGroupingUsed(true);
         DecimalFormat df = (DecimalFormat) nf;
         df.setMaximumFractionDigits(0);
@@ -237,6 +263,15 @@ public class AddTransactionActivity extends AppCompatActivity {
             // hide suggestions after selection
             if (llAmountSuggestions != null) llAmountSuggestions.setVisibility(View.GONE);
         } catch (Exception ignored) {}
+    }
+
+    /**
+     * Get the current locale based on app configuration
+     */
+    private Locale getCurrentLocale() {
+        Resources resources = getResources();
+        Configuration configuration = resources.getConfiguration();
+        return configuration.getLocales().get(0);
     }
 
     @Override

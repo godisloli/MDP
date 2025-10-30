@@ -8,7 +8,7 @@ import androidx.room.RoomDatabase;
 
 import net.tiramisu.mdp.model.TransactionEntity;
 
-@Database(entities = {TransactionEntity.class}, version = 1, exportSchema = false)
+@Database(entities = {TransactionEntity.class}, version = 2, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
     private static final String DB_NAME = "mdp_app_db";
     private static volatile AppDatabase INSTANCE;

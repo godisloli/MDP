@@ -210,13 +210,22 @@ public class HomeFragment extends Fragment {
     }
 
     @NonNull
-    private static Transaction getTransaction(TransactionEntity te) {
+    private Transaction getTransaction(TransactionEntity te) {
         int icon = R.drawable.ic_transaction;
-        if ("Ăn uống".equals(te.category)) icon = R.drawable.ic_food;
-        if ("Đi lại".equals(te.category)) icon = R.drawable.ic_transport;
-        if ("Mua sắm".equals(te.category)) icon = R.drawable.ic_shopping;
-        if ("Giải trí".equals(te.category)) icon = R.drawable.ic_entertainment;
-        String title = te.category != null ? te.category : "Giao dịch";
+        if (CategoryHelper.KEY_FOOD.equals(te.category)) icon = R.drawable.ic_food;
+        if (CategoryHelper.KEY_TRANSPORT.equals(te.category)) icon = R.drawable.ic_transport;
+        if (CategoryHelper.KEY_SHOPPING.equals(te.category)) icon = R.drawable.ic_shopping;
+        if (CategoryHelper.KEY_ENTERTAINMENT.equals(te.category)) icon = R.drawable.ic_entertainment;
+
+        // Use title if available, otherwise use localized category as title
+        String title;
+        if (te.title != null && !te.title.isEmpty()) {
+            title = te.title;
+        } else if (te.category != null) {
+            title = CategoryHelper.getLocalizedCategory(getContext(), te.category);
+        } else {
+            title = getString(R.string.transaction_title_default);
+        }
         Transaction t = new Transaction(title, "now", te.amount, icon);
         return t;
     }

@@ -11,7 +11,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Chung"
+        android:text="@string/general_group"
         android:textStyle="bold"
         android:textColor="@android:color/white"
         android:layout_marginBottom="8dp"/>
@@ -41,14 +41,14 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Đơn vị tiền tệ"
+                android:text="@string/currency"
                 android:textColor="@android:color/black"/>
 
             <TextView
                 android:id="@+id/tvCurrency"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Việt Nam Đồng (₫)"
+                android:text="@string/currency_default"
                 android:textStyle="bold"
                 android:textColor="@android:color/black"/>
         </LinearLayout>
@@ -56,7 +56,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Đổi"
+            android:text="@string/change"
             android:textColor="#6E6E6E"/>
     </LinearLayout>
 
@@ -87,14 +87,14 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Ngày bắt đầu tuần"
+                android:text="@string/week_start"
                 android:textColor="@android:color/black"/>
 
             <TextView
                 android:id="@+id/tvWeekStart"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Thứ Hai"
+                android:text="@string/week_start_default"
                 android:textStyle="bold"
                 android:textColor="@android:color/black"/>
         </LinearLayout>
@@ -102,7 +102,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Đổi"
+            android:text="@string/change"
             android:textColor="#6E6E6E"/>
     </LinearLayout>
 
@@ -110,7 +110,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Tài khoản"
+        android:text="@string/account"
         android:textStyle="bold"
         android:textColor="@android:color/white"
         android:layout_marginTop="12dp"
@@ -127,7 +127,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Đang đăng nhập:"
+            android:text="@string/logged_in_as"
             android:textColor="@android:color/black"/>
 
         <TextView
@@ -144,7 +144,7 @@
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Đăng xuất"
+            android:text="@string/logout"
             android:textAllCaps="false"
             android:textColor="#E53935"
             app:strokeColor="#E53935"/>
