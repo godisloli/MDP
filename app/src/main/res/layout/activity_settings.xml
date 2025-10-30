@@ -141,9 +141,9 @@
                     android:textColor="#6E6E6E"/>
             </LinearLayout>
 
-            <!-- Giao diện -->
+            <!-- Phát hiện giao dịch tự động -->
             <LinearLayout
-                android:id="@+id/card_theme"
+                android:id="@+id/card_auto_detect"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/white_card"
@@ -170,14 +170,14 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/theme"
+                        android:text="@string/auto_transaction_detection"
                         android:textColor="@android:color/black"/>
 
                     <TextView
-                        android:id="@+id/tvTheme"
+                        android:id="@+id/tvAutoDetect"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/system_default"
+                        android:text="@string/auto_detect_no_phones"
                         android:textStyle="bold"
                         android:textColor="@android:color/black"/>
                 </LinearLayout>
@@ -380,15 +380,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/export_data_csv"
-                    android:layout_marginBottom="8dp"
-                    app:icon="@drawable/ic_transaction"/>
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnImportCsv"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/import_data_csv"
                     app:icon="@drawable/ic_transaction"/>
             </LinearLayout>
 

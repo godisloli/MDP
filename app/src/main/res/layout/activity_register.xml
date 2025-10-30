@@ -11,13 +11,14 @@
         android:gravity="center"
         android:padding="32dp">
 
-        <!-- Icon ví -->
+        <!-- Logo -->
         <ImageView
-            android:src="@drawable/ic_wallet"
+            android:src="@drawable/logo"
             android:contentDescription="@string/app_logo"
-            android:layout_width="96dp"
-            android:layout_height="96dp"
-            android:layout_marginBottom="20dp" />
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:layout_marginBottom="24dp"
+            android:scaleType="fitCenter" />
 
         <!-- Tiêu đề -->
         <TextView

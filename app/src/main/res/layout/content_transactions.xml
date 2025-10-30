@@ -55,13 +55,20 @@
                 android:autofillHints="none"
                 android:fontFamily="sans-serif" />
 
-            <!-- Sort spinner -->
-            <Spinner
-                android:id="@+id/spinnerSort"
+            <!-- Sort button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSort"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:entries="@array/transaction_sort_options"
-                android:layout_marginBottom="8dp" />
+                android:text="@string/sort_by_date_desc"
+                android:textColor="@android:color/black"
+                android:layout_marginBottom="8dp"
+                app:icon="@drawable/ic_sort"
+                app:iconTint="@android:color/black"
+                app:strokeColor="@android:color/black"
+                app:strokeWidth="1dp"
+                app:cornerRadius="8dp" />
 
             <!-- Chips -->
             <HorizontalScrollView

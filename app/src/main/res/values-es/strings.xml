@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- App basics -->
-    <string name="app_name">Gestor de Gastos</string>
-    <string name="app_logo">Logo de la aplicación</string>
-    <string name="app_tagline">Administre sus finanzas personales fácilmente</string>
-    <string name="copy_right">© 2025 Gestor de Gastos. Todos los derechos reservados.</string>
+    <string name="app_name">Ez Money</string>
+    <string name="app_logo">Logotipo de la aplicación</string>
+    <string name="app_tagline">Gestiona tus finanzas personales fácilmente</string>
+    <string name="copy_right">© 2025 Ez Money. All rights reserved.</string>
 
     <!-- Navigation -->
     <string name="nav_home">Inicio</string>
@@ -21,6 +21,11 @@
     <string name="edit">Editar</string>
     <string name="add">Agregar</string>
     <string name="search">Buscar</string>
+    <string name="sort_by_date_desc">Más reciente</string>
+    <string name="sort_by_date_asc">Más antiguo</string>
+    <string name="sort_by_amount_desc">Mayor cantidad</string>
+    <string name="sort_by_amount_asc">Menor cantidad</string>
+
 
     <!-- Login/Register -->
     <string name="email_hint">Correo electrónico</string>
@@ -49,6 +54,7 @@
     <string name="currency">Moneda</string>
     <string name="week_start">La semana comienza el</string>
     <string name="theme">Tema</string>
+    <string name="auto_transaction_detection">Detección Automática de Transacciones</string>
     <string name="language">Idioma</string>
     <string name="reminder">Recordatorio</string>
     <string name="account">Cuenta</string>
@@ -191,5 +197,22 @@
     <string name="general_group">General</string>
     <string name="pie_chart_expense_label">Gasto\n(%)</string>
     <string name="pie_chart_income_label">Ingreso\n(%)</string>
+
+    <!-- Auto Transaction Detection -->
+    <string name="auto_detect_phone_numbers">Números de teléfono rastreados</string>
+    <string name="auto_detect_enabled">Detección automática activada</string>
+    <string name="auto_detect_disabled">Detección automática desactivada</string>
+    <string name="auto_detect_add_phone">Agregar número de teléfono</string>
+    <string name="auto_detect_phone_hint">Ingrese número de teléfono</string>
+    <string name="auto_detect_no_phones">Aún no hay números de teléfono</string>
+    <string name="auto_detect_manage_phones">Administrar números de teléfono</string>
+    <string name="auto_detect_permission_required">Se requiere permiso de SMS</string>
+    <string name="auto_detect_permission_explanation">La aplicación necesita permiso de SMS para detectar automáticamente transacciones de números de teléfono bancarios.</string>
+    <string name="sms_permission_denied">Permiso de SMS denegado</string>
+    <string name="phone_number_added">Número de teléfono agregado</string>
+    <string name="phone_number_removed">Número de teléfono eliminado</string>
+    <string name="phone_number_invalid">Número de teléfono inválido</string>
+    <string name="auto_transaction_detected">Transacción automática detectada</string>
+    <string name="auto_transaction_added">Transacción agregada: %s</string>
 </resources>
 

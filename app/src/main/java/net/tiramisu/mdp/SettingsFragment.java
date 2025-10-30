@@ -36,9 +36,11 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Locale;
 
 /**
@@ -90,6 +92,7 @@ public class SettingsFragment extends Fragment {
 
         TextView tvCurrency = view.findViewById(R.id.tvCurrency);
         TextView tvWeekStart = view.findViewById(R.id.tvWeekStart);
+        TextView tvAutoDetect = view.findViewById(R.id.tvAutoDetect);
         TextView tvLanguage = view.findViewById(R.id.tvLanguage);
         TextView tvReminderSummary = view.findViewById(R.id.tvReminderSummary);
         SwitchMaterial switchDaily = view.findViewById(R.id.switchDaily);
@@ -98,6 +101,7 @@ public class SettingsFragment extends Fragment {
 
         View cardCurrency = view.findViewById(R.id.card_currency);
         View cardWeekStart = view.findViewById(R.id.card_week_start);
+        View cardAutoDetect = view.findViewById(R.id.card_auto_detect);
         View cardLanguage = view.findViewById(R.id.card_language);
         View cardReminder = view.findViewById(R.id.card_reminder);
         View cardAccount = view.findViewById(R.id.card_account);
@@ -147,6 +151,9 @@ public class SettingsFragment extends Fragment {
         tvReminderSummary.setText(getString(R.string.reminder_summary_format, getString(R.string.reminder_time_label), reminder, extra));
         switchDaily.setChecked(dailyOn);
 
+        // Auto detection summary
+        updateAutoDetectSummary(tvAutoDetect);
+
         // user email
         String email = "";
         try { if (FirebaseAuth.getInstance().getCurrentUser() != null) email = FirebaseAuth.getInstance().getCurrentUser().getEmail(); } catch (Exception ignored) {}
@@ -165,6 +172,7 @@ public class SettingsFragment extends Fragment {
 
         // clicks — wire the whole card areas so tapping anywhere opens the dialog
         cardCurrency.setOnClickListener(v -> showCurrencyDialog(tvCurrency));
+        cardAutoDetect.setOnClickListener(v -> showAutoDetectDialog(tvAutoDetect));
         cardLanguage.setOnClickListener(v -> showLanguageDialog(tvLanguage));
         cardWeekStart.setOnClickListener(v -> showWeekStartDialog(tvWeekStart));
         cardReminder.setOnClickListener(v -> showTimePicker(tvReminderSummary));
@@ -174,6 +182,7 @@ public class SettingsFragment extends Fragment {
 
         // keep individual controls working too
         tvCurrency.setOnClickListener(v -> showCurrencyDialog(tvCurrency));
+        tvAutoDetect.setOnClickListener(v -> showAutoDetectDialog(tvAutoDetect));
         tvLanguage.setOnClickListener(v -> showLanguageDialog(tvLanguage));
         tvWeekStart.setOnClickListener(v -> showWeekStartDialog(tvWeekStart));
         tvReminderSummary.setOnClickListener(v -> showTimePicker(tvReminderSummary));
@@ -226,8 +235,7 @@ public class SettingsFragment extends Fragment {
             requireActivity().finish();
         });
 
-        view.findViewById(R.id.btnExportCsv).setOnClickListener(v -> exportCsv());
-        view.findViewById(R.id.btnImportCsv).setOnClickListener(v -> Toast.makeText(requireContext(), "Import not implemented", Toast.LENGTH_SHORT).show());
+        view.findViewById(R.id.btnExportCsv).setOnClickListener(v -> exportAndSendEmail());
     }
 
     private void showCurrencyDialog(TextView tvCurrency) {
@@ -470,6 +478,135 @@ public class SettingsFragment extends Fragment {
             .show();
     }
 
+    private void exportAndSendEmail() {
+        String userId = "local";
+        try {
+            if (FirebaseAuth.getInstance().getCurrentUser() != null)
+                userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        } catch (Exception ignored) {}
+
+        // Get user email
+        String userEmail = "";
+        try {
+            if (FirebaseAuth.getInstance().getCurrentUser() != null &&
+                FirebaseAuth.getInstance().getCurrentUser().getEmail() != null) {
+                userEmail = FirebaseAuth.getInstance().getCurrentUser().getEmail();
+            }
+        } catch (Exception ignored) {}
+
+        if (userEmail.isEmpty()) {
+            Toast.makeText(requireContext(), "Không tìm thấy email người dùng", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        final String email = userEmail;
+
+        // Get current month range
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.DAY_OF_MONTH, 1);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        long fromTime = cal.getTimeInMillis();
+
+        cal.set(Calendar.DAY_OF_MONTH, cal.getActualMaximum(Calendar.DAY_OF_MONTH));
+        cal.set(Calendar.HOUR_OF_DAY, 23);
+        cal.set(Calendar.MINUTE, 59);
+        cal.set(Calendar.SECOND, 59);
+        long toTime = cal.getTimeInMillis();
+
+        // Get current month/year for email subject
+        SimpleDateFormat monthFormat = new SimpleDateFormat("MMMM yyyy", Locale.getDefault());
+        String monthYear = monthFormat.format(new Date());
+
+        TransactionRepository repo = TransactionRepository.getInstance(requireContext());
+        repo.getByUser(userId, entities -> {
+            if (entities == null || entities.isEmpty()) {
+                requireActivity().runOnUiThread(() ->
+                    Toast.makeText(requireContext(), getString(R.string.no_data), Toast.LENGTH_SHORT).show());
+                return;
+            }
+
+            // Filter transactions for current month
+            List<TransactionEntity> monthTransactions = new ArrayList<>();
+            double totalIncome = 0;
+            double totalExpense = 0;
+
+            for (TransactionEntity te : entities) {
+                if (te.timestamp >= fromTime && te.timestamp <= toTime) {
+                    monthTransactions.add(te);
+                    if ("income".equalsIgnoreCase(te.type)) {
+                        totalIncome += te.amount;
+                    } else if ("expense".equalsIgnoreCase(te.type)) {
+                        totalExpense += Math.abs(te.amount);
+                    }
+                }
+            }
+
+            if (monthTransactions.isEmpty()) {
+                requireActivity().runOnUiThread(() ->
+                    Toast.makeText(requireContext(), "Không có dữ liệu tháng này", Toast.LENGTH_SHORT).show());
+                return;
+            }
+
+            // Build email content
+            StringBuilder emailBody = new StringBuilder();
+            emailBody.append("Báo cáo chi tiêu tháng ").append(monthYear).append("\n\n");
+            emailBody.append("═══════════════════════════════════\n");
+            emailBody.append("TỔNG QUAN\n");
+            emailBody.append("═══════════════════════════════════\n\n");
+            emailBody.append("📈 Tổng thu nhập: ").append(CurrencyUtils.formatCurrency(requireContext(), totalIncome)).append("\n");
+            emailBody.append("📉 Tổng chi tiêu: ").append(CurrencyUtils.formatCurrency(requireContext(), totalExpense)).append("\n");
+            emailBody.append("💰 Số dư: ").append(CurrencyUtils.formatCurrency(requireContext(), totalIncome - totalExpense)).append("\n\n");
+
+            emailBody.append("═══════════════════════════════════\n");
+            emailBody.append("CHI TIẾT GIAO DỊCH (").append(monthTransactions.size()).append(" giao dịch)\n");
+            emailBody.append("═══════════════════════════════════\n\n");
+
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+
+            for (TransactionEntity te : monthTransactions) {
+                String type = "income".equalsIgnoreCase(te.type) ? "📈 Thu" : "📉 Chi";
+                String date = dateFormat.format(new Date(te.timestamp));
+                String amount = CurrencyUtils.formatCurrency(requireContext(), Math.abs(te.amount));
+                String title = te.title != null && !te.title.isEmpty() ? te.title : "Không có tiêu đề";
+                String category = te.category != null ? CategoryHelper.getLocalizedCategory(requireContext(), te.category) : "";
+
+                emailBody.append(type).append(" | ").append(date).append("\n");
+                emailBody.append("   ").append(title);
+                if (!category.isEmpty()) {
+                    emailBody.append(" (").append(category).append(")");
+                }
+                emailBody.append("\n");
+                emailBody.append("   Số tiền: ").append(amount).append("\n");
+                if (te.note != null && !te.note.isEmpty()) {
+                    emailBody.append("   Ghi chú: ").append(te.note).append("\n");
+                }
+                emailBody.append("\n");
+            }
+
+            emailBody.append("═══════════════════════════════════\n");
+            emailBody.append("Xuất từ Ez Money\n");
+            emailBody.append("Ngày xuất: ").append(dateFormat.format(new Date())).append("\n");
+
+            // Send email
+            requireActivity().runOnUiThread(() -> {
+                Intent emailIntent = new Intent(Intent.ACTION_SEND);
+                emailIntent.setType("message/rfc822");
+                emailIntent.putExtra(Intent.EXTRA_EMAIL, new String[]{email});
+                emailIntent.putExtra(Intent.EXTRA_SUBJECT, "Ez Money - Báo cáo chi tiêu " + monthYear);
+                emailIntent.putExtra(Intent.EXTRA_TEXT, emailBody.toString());
+
+                try {
+                    startActivity(Intent.createChooser(emailIntent, "Gửi báo cáo qua email"));
+                } catch (android.content.ActivityNotFoundException ex) {
+                    Toast.makeText(requireContext(), "Không tìm thấy ứng dụng email", Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
+    }
+
     private void exportCsv() {
         String userId = "local";
         try { if (FirebaseAuth.getInstance().getCurrentUser() != null) userId = FirebaseAuth.getInstance().getCurrentUser().getUid(); } catch (Exception ignored) {}
@@ -505,5 +642,160 @@ public class SettingsFragment extends Fragment {
         }
         pw.flush();
         return pw;
+    }
+
+    /**
+     * Update auto detection summary based on saved phone numbers
+     */
+    private void updateAutoDetectSummary(TextView tvAutoDetect) {
+        java.util.Set<String> phones = sp.getStringSet("pref_auto_detect_phones", new java.util.HashSet<>());
+        if (phones.isEmpty()) {
+            tvAutoDetect.setText(getString(R.string.auto_detect_no_phones));
+        } else {
+            tvAutoDetect.setText(phones.size() + " số điện thoại");
+        }
+    }
+
+    /**
+     * Show dialog to manage auto detection feature
+     */
+    private void showAutoDetectDialog(TextView tvAutoDetect) {
+        java.util.Set<String> phones = new java.util.HashSet<>(sp.getStringSet("pref_auto_detect_phones", new java.util.HashSet<>()));
+
+        // Create list of phone numbers for display
+        final java.util.List<String> phoneList = new java.util.ArrayList<>(phones);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        builder.setTitle(R.string.auto_transaction_detection);
+
+        if (phoneList.isEmpty()) {
+            builder.setMessage(R.string.auto_detect_no_phones);
+        } else {
+            // Show list of phone numbers
+            String[] phoneArray = phoneList.toArray(new String[0]);
+            builder.setItems(phoneArray, (dialog, which) -> {
+                // Remove phone number
+                showRemovePhoneDialog(phoneList.get(which), tvAutoDetect);
+            });
+        }
+
+        builder.setPositiveButton(R.string.add, (dialog, which) -> {
+            showAddPhoneDialog(tvAutoDetect);
+        });
+
+        builder.setNegativeButton(R.string.cancel, null);
+        builder.show();
+    }
+
+    /**
+     * Show dialog to add phone number
+     */
+    private void showAddPhoneDialog(TextView tvAutoDetect) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        builder.setTitle(R.string.auto_detect_add_phone);
+
+        final android.widget.EditText input = new android.widget.EditText(requireContext());
+        input.setHint(R.string.auto_detect_phone_hint);
+        input.setInputType(android.text.InputType.TYPE_CLASS_PHONE);
+        builder.setView(input);
+
+        builder.setPositiveButton(R.string.add, (dialog, which) -> {
+            String phone = input.getText().toString().trim();
+            if (phone.isEmpty()) {
+                Toast.makeText(requireContext(), R.string.phone_number_invalid, Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Check SMS permission
+            if (!hasSmsPermission()) {
+                requestSmsPermission();
+                return;
+            }
+
+            // Add phone to saved list
+            java.util.Set<String> phones = new java.util.HashSet<>(sp.getStringSet("pref_auto_detect_phones", new java.util.HashSet<>()));
+            phones.add(phone);
+            sp.edit().putStringSet("pref_auto_detect_phones", phones).apply();
+
+            // Enable auto detection
+            sp.edit().putBoolean("pref_auto_detect_enabled", true).apply();
+
+            updateAutoDetectSummary(tvAutoDetect);
+            Toast.makeText(requireContext(), R.string.phone_number_added, Toast.LENGTH_SHORT).show();
+        });
+
+        builder.setNegativeButton(R.string.cancel, null);
+        builder.show();
+    }
+
+    /**
+     * Show dialog to confirm phone removal
+     */
+    private void showRemovePhoneDialog(String phone, TextView tvAutoDetect) {
+        new AlertDialog.Builder(requireContext())
+            .setTitle(R.string.delete)
+            .setMessage(phone)
+            .setPositiveButton(R.string.delete, (dialog, which) -> {
+                java.util.Set<String> phones = new java.util.HashSet<>(sp.getStringSet("pref_auto_detect_phones", new java.util.HashSet<>()));
+                phones.remove(phone);
+                sp.edit().putStringSet("pref_auto_detect_phones", phones).apply();
+
+                // Disable auto detection if no phones left
+                if (phones.isEmpty()) {
+                    sp.edit().putBoolean("pref_auto_detect_enabled", false).apply();
+                }
+
+                updateAutoDetectSummary(tvAutoDetect);
+                Toast.makeText(requireContext(), R.string.phone_number_removed, Toast.LENGTH_SHORT).show();
+            })
+            .setNegativeButton(R.string.cancel, null)
+            .show();
+    }
+
+    /**
+     * Check if SMS permission is granted
+     */
+    private boolean hasSmsPermission() {
+        return ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.RECEIVE_SMS)
+            == PackageManager.PERMISSION_GRANTED;
+    }
+
+    /**
+     * Request SMS permission
+     */
+    private void requestSmsPermission() {
+        if (!hasSmsPermission()) {
+            if (shouldShowRequestPermissionRationale(Manifest.permission.RECEIVE_SMS)) {
+                showSmsPermissionExplanationDialog();
+            } else {
+                requestPermissions(new String[]{Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_SMS}, 1001);
+            }
+        }
+    }
+
+    /**
+     * Show dialog explaining why SMS permission is needed
+     */
+    private void showSmsPermissionExplanationDialog() {
+        new AlertDialog.Builder(requireContext())
+            .setTitle(R.string.auto_detect_permission_required)
+            .setMessage(R.string.auto_detect_permission_explanation)
+            .setPositiveButton(R.string.ok, (dialog, which) -> {
+                requestPermissions(new String[]{Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_SMS}, 1001);
+            })
+            .setNegativeButton(R.string.cancel, null)
+            .show();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 1001) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(requireContext(), getString(R.string.ok), Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(requireContext(), getString(R.string.sms_permission_denied), Toast.LENGTH_LONG).show();
+            }
+        }
     }
 }

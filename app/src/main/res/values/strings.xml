@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- App basics -->
-    <string name="app_name">Quản Lý Chi Tiêu</string>
+    <string name="app_name">Ez Money</string>
     <string name="app_logo">Logo ứng dụng</string>
     <string name="app_tagline">Quản lý tài chính cá nhân dễ dàng</string>
-    <string name="copy_right">© 2025 Quản Lý Chi Tiêu. All rights reserved.</string>
+    <string name="copy_right">© 2025 Ez Money. All rights reserved.</string>
 
     <!-- Navigation -->
     <string name="nav_home">Trang chủ</string>
@@ -21,6 +21,11 @@
     <string name="edit">Sửa</string>
     <string name="add">Thêm</string>
     <string name="search">Tìm kiếm</string>
+    <string name="sort_by_date_desc">Mới nhất</string>
+    <string name="sort_by_date_asc">Cũ nhất</string>
+    <string name="sort_by_amount_desc">Số tiền cao</string>
+    <string name="sort_by_amount_asc">Số tiền thấp</string>
+
 
     <!-- Login/Register -->
     <string name="email_hint">Email</string>
@@ -49,6 +54,7 @@
     <string name="currency">Đơn vị tiền tệ</string>
     <string name="week_start">Ngày bắt đầu tuần</string>
     <string name="theme">Giao diện</string>
+    <string name="auto_transaction_detection">Phát hiện giao dịch tự động</string>
     <string name="language">Ngôn ngữ</string>
     <string name="reminder">Nhắc nhở</string>
     <string name="account">Tài khoản</string>
@@ -191,5 +197,22 @@
     <string name="general_group">Chung</string>
     <string name="pie_chart_expense_label">Chi tiêu\n(%)</string>
     <string name="pie_chart_income_label">Thu nhập\n(%)</string>
+
+    <!-- Auto Transaction Detection -->
+    <string name="auto_detect_phone_numbers">Số điện thoại theo dõi</string>
+    <string name="auto_detect_enabled">Bật phát hiện tự động</string>
+    <string name="auto_detect_disabled">Tắt phát hiện tự động</string>
+    <string name="auto_detect_add_phone">Thêm số điện thoại</string>
+    <string name="auto_detect_phone_hint">Nhập số điện thoại</string>
+    <string name="auto_detect_no_phones">Chưa có số điện thoại nào</string>
+    <string name="auto_detect_manage_phones">Quản lý số điện thoại</string>
+    <string name="auto_detect_permission_required">Cần quyền đọc tin nhắn</string>
+    <string name="auto_detect_permission_explanation">Ứng dụng cần quyền đọc tin nhắn để tự động phát hiện giao dịch từ các số điện thoại ngân hàng.</string>
+    <string name="sms_permission_denied">Quyền đọc tin nhắn bị từ chối</string>
+    <string name="phone_number_added">Đã thêm số điện thoại</string>
+    <string name="phone_number_removed">Đã xóa số điện thoại</string>
+    <string name="phone_number_invalid">Số điện thoại không hợp lệ</string>
+    <string name="auto_transaction_detected">Phát hiện giao dịch tự động</string>
+    <string name="auto_transaction_added">Đã thêm giao dịch: %s</string>
 </resources>
 

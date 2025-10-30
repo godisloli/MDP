@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- App basics -->
-    <string name="app_name">Expense Manager</string>
+    <string name="app_name">Ez Money</string>
     <string name="app_logo">App logo</string>
     <string name="app_tagline">Manage your personal finances easily</string>
-    <string name="copy_right">© 2025 Expense Manager. All rights reserved.</string>
+    <string name="copy_right">© 2025 Ez Money. All rights reserved.</string>
 
     <!-- Navigation -->
     <string name="nav_home">Home</string>
@@ -21,6 +21,11 @@
     <string name="edit">Edit</string>
     <string name="add">Add</string>
     <string name="search">Search</string>
+    <string name="sort_by_date_desc">Newest</string>
+    <string name="sort_by_date_asc">Oldest</string>
+    <string name="sort_by_amount_desc">Highest Amount</string>
+    <string name="sort_by_amount_asc">Lowest Amount</string>
+
 
     <!-- Login/Register -->
     <string name="email_hint">Email</string>
@@ -49,6 +54,7 @@
     <string name="currency">Currency</string>
     <string name="week_start">Week starts on</string>
     <string name="theme">Theme</string>
+    <string name="auto_transaction_detection">Auto Transaction Detection</string>
     <string name="language">Language</string>
     <string name="reminder">Reminder</string>
     <string name="account">Account</string>
@@ -191,5 +197,22 @@
     <string name="general_group">General</string>
     <string name="pie_chart_expense_label">Expense\n(%)</string>
     <string name="pie_chart_income_label">Income\n(%)</string>
+
+    <!-- Auto Transaction Detection -->
+    <string name="auto_detect_phone_numbers">Tracked phone numbers</string>
+    <string name="auto_detect_enabled">Auto detection enabled</string>
+    <string name="auto_detect_disabled">Auto detection disabled</string>
+    <string name="auto_detect_add_phone">Add phone number</string>
+    <string name="auto_detect_phone_hint">Enter phone number</string>
+    <string name="auto_detect_no_phones">No phone numbers yet</string>
+    <string name="auto_detect_manage_phones">Manage phone numbers</string>
+    <string name="auto_detect_permission_required">SMS permission required</string>
+    <string name="auto_detect_permission_explanation">The app needs SMS permission to automatically detect transactions from bank phone numbers.</string>
+    <string name="sms_permission_denied">SMS permission denied</string>
+    <string name="phone_number_added">Phone number added</string>
+    <string name="phone_number_removed">Phone number removed</string>
+    <string name="phone_number_invalid">Invalid phone number</string>
+    <string name="auto_transaction_detected">Auto transaction detected</string>
+    <string name="auto_transaction_added">Transaction added: %s</string>
 </resources>
 

@@ -17,7 +17,8 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:title="@string/transaction_detail_title"
-            android:background="@android:color/transparent"/>
+            android:background="@android:color/transparent"
+            app:navigationIcon="@drawable/ic_back"/>
     </com.google.android.material.appbar.AppBarLayout>
 
     <!-- pad bottom so content isn't covered by bottom navigation/gesture bar -->

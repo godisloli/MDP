@@ -14,9 +14,18 @@ import java.util.List;
 
 public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.ViewHolder> {
     private final List<Transaction> items;
+    private OnItemClickListener listener;
+
+    public interface OnItemClickListener {
+        void onItemClick(Transaction transaction);
+    }
 
     public TransactionAdapter(List<Transaction> items) {
         this.items = items;
+    }
+
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.listener = listener;
     }
 
     @NonNull
@@ -41,6 +50,13 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
             holder.amount.setTextColor(ContextCompat.getColor(holder.amount.getContext(), android.R.color.holo_green_dark));
         }
         if (t.iconResId != 0) holder.icon.setImageResource(t.iconResId);
+
+        // Set click listener
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onItemClick(t);
+            }
+        });
     }
 
     @Override

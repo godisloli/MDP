@@ -22,11 +22,16 @@ public class NotificationHelper {
     private static final String CHANNEL_NAME = "Daily Reminder";
     private static final int NOTIFICATION_ID = 1001;
 
+    private static final String AUTO_CHANNEL_ID = "auto_transaction_channel";
+    private static final String AUTO_CHANNEL_NAME = "Auto Transaction";
+    private static final int AUTO_NOTIFICATION_ID = 1002;
+
     /**
      * Create notification channel (required for Android O+)
      */
     public static void createNotificationChannel(Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // Daily reminder channel
             NotificationChannel channel = new NotificationChannel(
                 CHANNEL_ID,
                 CHANNEL_NAME,
@@ -34,9 +39,18 @@ public class NotificationHelper {
             );
             channel.setDescription("Daily expense reminder notifications");
 
+            // Auto transaction channel
+            NotificationChannel autoChannel = new NotificationChannel(
+                AUTO_CHANNEL_ID,
+                AUTO_CHANNEL_NAME,
+                NotificationManager.IMPORTANCE_HIGH
+            );
+            autoChannel.setDescription("Automatic transaction detection notifications");
+
             NotificationManager manager = context.getSystemService(NotificationManager.class);
             if (manager != null) {
                 manager.createNotificationChannel(channel);
+                manager.createNotificationChannel(autoChannel);
             }
         }
     }
@@ -120,6 +134,49 @@ public class NotificationHelper {
      */
     public static void showTestNotification(Context context) {
         showDailyReminder(context, 150000, 50000);
+    }
+
+    /**
+     * Show notification when auto transaction is detected
+     */
+    public static void showAutoTransactionNotification(Context context, String amount) {
+        createNotificationChannel(context);
+
+        String title = context.getString(R.string.auto_transaction_detected);
+        String content = context.getString(R.string.auto_transaction_added, amount);
+
+        // Create intent to open app when notification is tapped
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        intent.putExtra("open_tab", "transactions");
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+            context,
+            0,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
+        // Build notification
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, AUTO_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(title)
+            .setContentText(content)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true);
+
+        // Show notification
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
+
+        // Check permission (Android 13+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+                return;
+            }
+        }
+
+        notificationManager.notify(AUTO_NOTIFICATION_ID, builder.build());
     }
 }
 

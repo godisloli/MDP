@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- App basics -->
-    <string name="app_name">支出管理器</string>
-    <string name="app_logo">应用标志</string>
+    <string name="app_name">Ez Money</string>
+    <string name="app_logo">应用程序徽标</string>
     <string name="app_tagline">轻松管理您的个人财务</string>
-    <string name="copy_right">© 2025 支出管理器。保留所有权利。</string>
+    <string name="copy_right">© 2025 Ez Money. All rights reserved.</string>
 
     <!-- Navigation -->
     <string name="nav_home">首页</string>
@@ -21,6 +21,11 @@
     <string name="edit">编辑</string>
     <string name="add">添加</string>
     <string name="search">搜索</string>
+    <string name="sort_by_date_desc">最新</string>
+    <string name="sort_by_date_asc">最旧</string>
+    <string name="sort_by_amount_desc">金额最高</string>
+    <string name="sort_by_amount_asc">金额最低</string>
+
 
     <!-- Login/Register -->
     <string name="email_hint">电子邮件</string>
@@ -49,6 +54,7 @@
     <string name="currency">货币</string>
     <string name="week_start">星期开始于</string>
     <string name="theme">主题</string>
+    <string name="auto_transaction_detection">自动交易检测</string>
     <string name="language">语言</string>
     <string name="reminder">提醒</string>
     <string name="account">账户</string>
@@ -191,5 +197,22 @@
     <string name="general_group">通用</string>
     <string name="pie_chart_expense_label">支出\n(%)</string>
     <string name="pie_chart_income_label">收入\n(%)</string>
+
+    <!-- Auto Transaction Detection -->
+    <string name="auto_detect_phone_numbers">跟踪的电话号码</string>
+    <string name="auto_detect_enabled">已启用自动检测</string>
+    <string name="auto_detect_disabled">已禁用自动检测</string>
+    <string name="auto_detect_add_phone">添加电话号码</string>
+    <string name="auto_detect_phone_hint">输入电话号码</string>
+    <string name="auto_detect_no_phones">还没有电话号码</string>
+    <string name="auto_detect_manage_phones">管理电话号码</string>
+    <string name="auto_detect_permission_required">需要短信权限</string>
+    <string name="auto_detect_permission_explanation">应用需要短信权限才能自动检测来自银行电话号码的交易。</string>
+    <string name="sms_permission_denied">短信权限被拒绝</string>
+    <string name="phone_number_added">已添加电话号码</string>
+    <string name="phone_number_removed">已删除电话号码</string>
+    <string name="phone_number_invalid">无效的电话号码</string>
+    <string name="auto_transaction_detected">检测到自动交易</string>
+    <string name="auto_transaction_added">已添加交易：%s</string>
 </resources>
 

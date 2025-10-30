@@ -7,6 +7,9 @@ public class Transaction {
     public final int iconResId;
     // optional extra long for sorting (timestamp)
     public long extraLong = 0L;
+    // optional fields for detail view
+    public String category;
+    public String note;
 
     public Transaction(String title, String date, double amount, int iconResId) {
         this.title = title;

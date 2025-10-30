@@ -18,6 +18,10 @@ public class ViewDetailsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_transaction_detail);
 
+        // Setup toolbar with back button
+        com.google.android.material.appbar.MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        toolbar.setNavigationOnClickListener(v -> finish());
+
         // Use IDs that exist in activity_transaction_detail.xml
         TextView tvDetailTitle = findViewById(R.id.tvDetailTitle);
         TextView tvDetailDate = findViewById(R.id.tvDetailDate);

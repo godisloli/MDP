@@ -25,7 +25,7 @@
             android:text="@string/welcome"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:textColor="@color/textHighlight"
+            android:textColor="@color/white"
             android:layout_marginBottom="8dp" />
 
         <!-- 🧾 Thẻ Số dư hiện tại -->

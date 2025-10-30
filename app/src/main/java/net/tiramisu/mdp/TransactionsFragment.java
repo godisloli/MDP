@@ -48,8 +48,9 @@ public class TransactionsFragment extends Fragment {
 
     // UI controls
     private EditText edtSearch;
-    private Spinner spinnerSort;
+    private com.google.android.material.button.MaterialButton btnSort;
     private ChipGroup chips;
+    private int currentSortMode = 0; // 0=date desc, 1=date asc, 2=amount desc, 3=amount asc
 
     // listener - called by repository when data changes
     private final Runnable repoListener = () -> {
@@ -81,7 +82,7 @@ public class TransactionsFragment extends Fragment {
 
         // find UI
         edtSearch = view.findViewById(R.id.edtSearch);
-        spinnerSort = view.findViewById(R.id.spinnerSort);
+        btnSort = view.findViewById(R.id.btnSort);
         chips = view.findViewById(R.id.chips);
         RecyclerView rv = view.findViewById(R.id.rvTransactions);
 
@@ -103,6 +104,18 @@ public class TransactionsFragment extends Fragment {
         if (rv != null) {
             rv.setLayoutManager(new LinearLayoutManager(requireContext()));
             adapter = new TransactionAdapter(new ArrayList<>());
+
+            // Set click listener to open transaction details
+            adapter.setOnItemClickListener(transaction -> {
+                android.content.Intent intent = new android.content.Intent(requireContext(), ViewDetailsActivity.class);
+                intent.putExtra("EXTRA_TITLE", transaction.title);
+                intent.putExtra("EXTRA_DATE", transaction.date);
+                intent.putExtra("EXTRA_AMOUNT", transaction.amount);
+                intent.putExtra("EXTRA_CATEGORY", transaction.category);
+                intent.putExtra("EXTRA_NOTE", transaction.note);
+                startActivity(intent);
+            });
+
             rv.setAdapter(adapter);
             ViewCompat.setOnApplyWindowInsetsListener(rv, (v, insets) -> {
                 int bottom = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
@@ -120,12 +133,14 @@ public class TransactionsFragment extends Fragment {
             });
         }
 
-        // wire spinner change
-        if (spinnerSort != null) {
-            spinnerSort.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override public void onItemSelected(AdapterView<?> parent, View view1, int position, long id) { applyFilters(); }
-                @Override public void onNothingSelected(AdapterView<?> parent) {}
+        // wire sort button to cycle through modes
+        if (btnSort != null) {
+            btnSort.setOnClickListener(v -> {
+                currentSortMode = (currentSortMode + 1) % 4;
+                updateSortButtonText();
+                applyFilters();
             });
+            updateSortButtonText();
         }
 
         // wire chips change
@@ -288,23 +303,24 @@ public class TransactionsFragment extends Fragment {
                 }
                 Transaction t = new Transaction(title, dateStr, te.amount, icon);
                 t.extraLong = te.timestamp;
+                t.category = te.category;
+                t.note = te.note;
                 pairs.add(new Pair<>(t, te.timestamp));
             }
         }
-        // Sort
-        int sortPos = spinnerSort == null ? 0 : spinnerSort.getSelectedItemPosition();
-        switch (sortPos) {
-            case 0: // Newest
+        // Sort based on currentSortMode
+        switch (currentSortMode) {
+            case 0: // Newest (date desc)
                 pairs.sort((p1, p2) -> Long.compare(p2.second, p1.second));
                 break;
-            case 1: // Oldest
+            case 1: // Oldest (date asc)
                 pairs.sort(Comparator.comparingLong(p -> p.second));
                 break;
-            case 2: // Amount asc
-                pairs.sort(Comparator.comparingDouble(p -> p.first.amount));
+            case 2: // Amount desc (high to low)
+                pairs.sort((p1, p2) -> Double.compare(Math.abs(p2.first.amount), Math.abs(p1.first.amount)));
                 break;
-            case 3: // Amount desc
-                pairs.sort((p1, p2) -> Double.compare(p2.first.amount, p1.first.amount));
+            case 3: // Amount asc (low to high)
+                pairs.sort(Comparator.comparingDouble(p -> Math.abs(p.first.amount)));
                 break;
             default:
                 break;
@@ -321,6 +337,25 @@ public class TransactionsFragment extends Fragment {
         // scroll to top
         RecyclerView rv2 = view.findViewById(R.id.rvTransactions);
         if (rv2 != null && !out.isEmpty()) rv2.scrollToPosition(0);
+    }
+
+    // Update sort button text based on current sort mode
+    private void updateSortButtonText() {
+        if (btnSort == null) return;
+        switch (currentSortMode) {
+            case 0:
+                btnSort.setText(R.string.sort_by_date_desc);
+                break;
+            case 1:
+                btnSort.setText(R.string.sort_by_date_asc);
+                break;
+            case 2:
+                btnSort.setText(R.string.sort_by_amount_desc);
+                break;
+            case 3:
+                btnSort.setText(R.string.sort_by_amount_asc);
+                break;
+        }
     }
 
     // Normalize text for search: remove diacritics, lower-case, collapse whitespace
