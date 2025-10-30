@@ -40,6 +40,8 @@ import android.content.res.Configuration;
 import android.content.res.Resources;
 
 public class TransactionsFragment extends Fragment {
+    private static final int REQUEST_VIEW_DETAILS = 1001;
+
     private TransactionAdapter adapter;
     private TransactionRepository repository;
 
@@ -113,7 +115,8 @@ public class TransactionsFragment extends Fragment {
                 intent.putExtra("EXTRA_AMOUNT", transaction.amount);
                 intent.putExtra("EXTRA_CATEGORY", transaction.category);
                 intent.putExtra("EXTRA_NOTE", transaction.note);
-                startActivity(intent);
+                intent.putExtra("EXTRA_TIMESTAMP", transaction.extraLong); // Pass timestamp
+                startActivityForResult(intent, REQUEST_VIEW_DETAILS);
             });
 
             rv.setAdapter(adapter);
@@ -176,6 +179,33 @@ public class TransactionsFragment extends Fragment {
     public void onStop() {
         super.onStop();
         if (repository != null) repository.unregisterChangeListener(repoListener);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable android.content.Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_VIEW_DETAILS && resultCode == android.app.Activity.RESULT_OK) {
+            // Transaction was deleted or modified, refresh the list
+            String userId = "local";
+            try {
+                if (FirebaseAuth.getInstance().getCurrentUser() != null)
+                    userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            } catch (Exception ignored) {}
+
+            final String finalUserId = userId;
+            repository.getByUser(userId, entities -> {
+                if (entities == null) entities = new ArrayList<>();
+                synchronized (allEntities) {
+                    allEntities.clear();
+                    allEntities.addAll(entities);
+                }
+                if (getActivity() != null) getActivity().runOnUiThread(() -> {
+                    applyFilters();
+                    View v = getView();
+                    if (v != null) refreshSums(v);
+                });
+            });
+        }
     }
 
     private void refreshSums(@NonNull View view) {

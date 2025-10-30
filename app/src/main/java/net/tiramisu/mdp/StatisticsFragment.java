@@ -55,7 +55,6 @@ public class StatisticsFragment extends Fragment {
     private double lastIncome = 0.0;
     private double lastExpense = 0.0;
     private PieChart pieChartExpense;
-    private PieChart pieChartIncome;
 
     // listener to be notified when transactions change
     private final Runnable repoListener = () -> {
@@ -116,7 +115,6 @@ public class StatisticsFragment extends Fragment {
 
         // find pie charts and configure basic appearance
         pieChartExpense = view.findViewById(R.id.pieChartExpense);
-        pieChartIncome = view.findViewById(R.id.pieChartIncome);
         try {
             if (pieChartExpense != null) {
                 pieChartExpense.getDescription().setEnabled(false);
@@ -139,28 +137,6 @@ public class StatisticsFragment extends Fragment {
                 pieChartExpense.setEntryLabelColor(Color.WHITE);
                 pieChartExpense.setCenterTextColor(Color.DKGRAY);
                 pieChartExpense.animateY(700);
-            }
-            if (pieChartIncome != null) {
-                pieChartIncome.getDescription().setEnabled(false);
-                pieChartIncome.setUsePercentValues(true);
-                pieChartIncome.setDrawHoleEnabled(true);
-                pieChartIncome.setHoleColor(Color.TRANSPARENT);
-                pieChartIncome.setHoleRadius(48f);
-                pieChartIncome.setTransparentCircleRadius(54f);
-                pieChartIncome.setCenterText(getString(R.string.pie_chart_income_label));
-                pieChartIncome.setCenterTextSize(14f);
-                pieChartIncome.setEntryLabelColor(Color.DKGRAY);
-                pieChartIncome.setEntryLabelTextSize(12f);
-                pieChartIncome.getLegend().setEnabled(true);
-                pieChartIncome.getLegend().setVerticalAlignment(com.github.mikephil.charting.components.Legend.LegendVerticalAlignment.BOTTOM);
-                pieChartIncome.getLegend().setHorizontalAlignment(com.github.mikephil.charting.components.Legend.LegendHorizontalAlignment.CENTER);
-                pieChartIncome.getLegend().setOrientation(com.github.mikephil.charting.components.Legend.LegendOrientation.HORIZONTAL);
-                pieChartIncome.getLegend().setDrawInside(false);
-                pieChartIncome.setDrawEntryLabels(false);
-                pieChartIncome.setRotationEnabled(false);
-                pieChartIncome.setEntryLabelColor(Color.WHITE);
-                pieChartIncome.setCenterTextColor(Color.DKGRAY);
-                pieChartIncome.animateY(700);
             }
         } catch (Exception ignored) {
         }
@@ -344,13 +320,6 @@ public class StatisticsFragment extends Fragment {
                 } catch (Exception ex) {
                     android.util.Log.d("StatisticsFrag", "populate expense pie failed: " + ex.getMessage());
                 }
-
-                // populate income pie
-                try {
-                    populatePieChart(pieChartIncome, incomeMap);
-                } catch (Exception ex) {
-                    android.util.Log.d("StatisticsFrag", "populate income pie failed: " + ex.getMessage());
-                }
             });
         });
     }
@@ -494,26 +463,20 @@ public class StatisticsFragment extends Fragment {
 
         PieDataSet set = new PieDataSet(entries, "");
         ArrayList<Integer> colors = new ArrayList<>();
-        // Choose themed colors: red hues for expense, green hues for income
+        // Choose themed colors: red hues for expense
         if (chart == pieChartExpense) {
             colors.add(Color.rgb(233, 30, 99)); // pink
             colors.add(Color.rgb(244, 67, 54)); // red
             colors.add(Color.rgb(229, 57, 53));
             colors.add(Color.rgb(198, 40, 40));
             colors.add(Color.rgb(244, 143, 177));
-        } else if (chart == pieChartIncome) {
-            colors.add(Color.rgb(76, 175, 80)); // green
-            colors.add(Color.rgb(139, 195, 74));
-            colors.add(Color.rgb(56, 142, 60));
-            colors.add(Color.rgb(102, 187, 106));
-            colors.add(Color.rgb(200, 230, 201));
         } else {
             for (int c : ColorTemplate.MATERIAL_COLORS) colors.add(c);
             for (int c : ColorTemplate.VORDIPLOM_COLORS) colors.add(c);
         }
         set.setColors(colors);
         // value color: white on dark slices (better contrast), otherwise black
-        if (chart == pieChartExpense || chart == pieChartIncome) set.setValueTextColor(Color.WHITE);
+        if (chart == pieChartExpense) set.setValueTextColor(Color.WHITE);
         else set.setValueTextColor(Color.BLACK);
         set.setValueTextSize(12f);
 

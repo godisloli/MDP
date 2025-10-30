@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -37,9 +38,15 @@ import java.util.List;
 import java.util.Map;
 
 public class HomeFragment extends Fragment {
+    private static final int REQUEST_VIEW_DETAILS = 1001;
+
     private TextView tvBalance;
     private TextView tvIncome;
     private TextView tvExpense;
+    private TextView tvIncomeComparison;
+    private TextView tvExpenseComparison;
+    private TextView tvIncomeChange;
+    private TextView tvExpenseChange;
     private TransactionRepository repository;
     private double currentBaseBalance = 0.0;
     private TransactionAdapter recentAdapter;
@@ -65,7 +72,12 @@ public class HomeFragment extends Fragment {
         tvBalance = view.findViewById(R.id.tvBalance);
         tvIncome = view.findViewById(R.id.tvIncome);
         tvExpense = view.findViewById(R.id.tvExpense);
+        tvIncomeComparison = view.findViewById(R.id.tvIncomeComparison);
+        tvExpenseComparison = view.findViewById(R.id.tvExpenseComparison);
+        tvIncomeChange = view.findViewById(R.id.tvIncomeChange);
+        tvExpenseChange = view.findViewById(R.id.tvExpenseChange);
         RecyclerView rvRecent = view.findViewById(R.id.rvRecent);
+        com.google.android.material.button.MaterialButton btnGenerateTestData = view.findViewById(R.id.btnGenerateTestData);
 
         repository = net.tiramisu.mdp.repo.TransactionRepository.getInstance(requireContext());
 
@@ -73,6 +85,19 @@ public class HomeFragment extends Fragment {
         if (rvRecent != null) {
             rvRecent.setLayoutManager(new LinearLayoutManager(requireContext()));
             recentAdapter = new TransactionAdapter(new ArrayList<>());
+
+            // Set click listener to open transaction details
+            recentAdapter.setOnItemClickListener(transaction -> {
+                android.content.Intent intent = new android.content.Intent(requireContext(), ViewDetailsActivity.class);
+                intent.putExtra("EXTRA_TITLE", transaction.title);
+                intent.putExtra("EXTRA_DATE", transaction.date);
+                intent.putExtra("EXTRA_AMOUNT", transaction.amount);
+                intent.putExtra("EXTRA_CATEGORY", transaction.category);
+                intent.putExtra("EXTRA_NOTE", transaction.note);
+                intent.putExtra("EXTRA_TIMESTAMP", transaction.extraLong); // Pass timestamp
+                startActivityForResult(intent, REQUEST_VIEW_DETAILS);
+            });
+
             rvRecent.setAdapter(recentAdapter);
         }
 
@@ -102,6 +127,11 @@ public class HomeFragment extends Fragment {
             tvBalance.setOnClickListener(v -> showEditBalanceDialog(targetUid));
         }
 
+        // Setup test data generation button
+        if (btnGenerateTestData != null) {
+            btnGenerateTestData.setOnClickListener(v -> generateTestData());
+        }
+
         if (targetUid != null && !targetUid.isEmpty()) {
             // migrate any local transactions into the user account so sums and recent list are preserved
             repository.migrateUserId("local", targetUid, () -> {
@@ -109,6 +139,7 @@ public class HomeFragment extends Fragment {
                 loadUserBaseBalance(targetUid, () -> {
                     loadMonthlySums(targetUid);
                     loadRecent(targetUid);
+                    loadMonthComparison(targetUid);
                 });
             });
         } else {
@@ -118,6 +149,7 @@ public class HomeFragment extends Fragment {
             updateBalanceDisplay(currentBaseBalance);
             loadMonthlySums("local");
             loadRecent("local");
+            loadMonthComparison("local");
         }
     }
 
@@ -139,6 +171,15 @@ public class HomeFragment extends Fragment {
     public void onResume() {
         super.onResume();
         refreshData();
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable android.content.Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_VIEW_DETAILS && resultCode == android.app.Activity.RESULT_OK) {
+            // Transaction was deleted or modified, refresh all data
+            refreshData();
+        }
     }
 
     public void refreshData() {
@@ -163,16 +204,19 @@ public class HomeFragment extends Fragment {
                     updateBalanceDisplay(currentBaseBalance);
                     loadMonthlySums(targetUid);
                     loadRecent(targetUid);
+                    loadMonthComparison(targetUid);
                 } else if (repository != null && repository.wasManuallyUpdatedRecently(targetUid, 5000)) {
                     // use the in-memory currentBaseBalance (set when user saved) and refresh UI
                     updateBalanceDisplay(currentBaseBalance);
                     loadMonthlySums(targetUid);
                     loadRecent(targetUid);
+                    loadMonthComparison(targetUid);
                 } else {
                     // no cached value and no recent manual update -> fetch from Firestore
                     loadUserBaseBalance(targetUid, () -> {
                         loadMonthlySums(targetUid);
                         loadRecent(targetUid);
+                        loadMonthComparison(targetUid);
                     });
                 }
             } catch (Exception ex) {
@@ -180,6 +224,7 @@ public class HomeFragment extends Fragment {
                 loadUserBaseBalance(targetUid, () -> {
                     loadMonthlySums(targetUid);
                     loadRecent(targetUid);
+                    loadMonthComparison(targetUid);
                 });
             }
         } else {
@@ -189,6 +234,7 @@ public class HomeFragment extends Fragment {
             updateBalanceDisplay(currentBaseBalance);
             loadMonthlySums("local");
             loadRecent("local");
+            loadMonthComparison("local");
         }
     }
 
@@ -226,7 +272,18 @@ public class HomeFragment extends Fragment {
         } else {
             title = getString(R.string.transaction_title_default);
         }
-        Transaction t = new Transaction(title, "now", te.amount, icon);
+
+        // Format date string from timestamp
+        String dateStr = "now";
+        try {
+            java.text.SimpleDateFormat df = new java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault());
+            dateStr = df.format(new java.util.Date(te.timestamp));
+        } catch (Exception ignored) {}
+
+        Transaction t = new Transaction(title, dateStr, te.amount, icon);
+        t.extraLong = te.timestamp; // Store timestamp for deletion
+        t.category = te.category;
+        t.note = te.note;
         return t;
     }
 
@@ -425,5 +482,166 @@ public class HomeFragment extends Fragment {
             double net = inc + exp;
             if (callback != null) callback.accept(net);
         }));
+    }
+
+    // Load month-over-month comparison
+    private void loadMonthComparison(String userId) {
+        // Get current month range
+        long currentFrom, currentTo;
+        try {
+            LocalDate now = LocalDate.now();
+            LocalDate start = now.withDayOfMonth(1);
+            LocalDate end = now.withDayOfMonth(now.lengthOfMonth());
+            currentFrom = start.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli();
+            currentTo = end.atTime(23,59,59).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        } catch (Exception ex) {
+            Calendar cal = Calendar.getInstance();
+            cal.set(Calendar.DAY_OF_MONTH, 1);
+            cal.set(Calendar.HOUR_OF_DAY, 0); cal.set(Calendar.MINUTE, 0); cal.set(Calendar.SECOND,0); cal.set(Calendar.MILLISECOND,0);
+            currentFrom = cal.getTimeInMillis();
+            cal.set(Calendar.DAY_OF_MONTH, cal.getActualMaximum(Calendar.DAY_OF_MONTH));
+            cal.set(Calendar.HOUR_OF_DAY,23); cal.set(Calendar.MINUTE,59); cal.set(Calendar.SECOND,59);
+            currentTo = cal.getTimeInMillis();
+        }
+
+        // Get previous month range
+        long previousFrom, previousTo;
+        try {
+            LocalDate now = LocalDate.now();
+            LocalDate previousMonth = now.minusMonths(1);
+            LocalDate start = previousMonth.withDayOfMonth(1);
+            LocalDate end = previousMonth.withDayOfMonth(previousMonth.lengthOfMonth());
+            previousFrom = start.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli();
+            previousTo = end.atTime(23,59,59).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        } catch (Exception ex) {
+            Calendar cal = Calendar.getInstance();
+            cal.add(Calendar.MONTH, -1);
+            cal.set(Calendar.DAY_OF_MONTH, 1);
+            cal.set(Calendar.HOUR_OF_DAY, 0); cal.set(Calendar.MINUTE, 0); cal.set(Calendar.SECOND,0); cal.set(Calendar.MILLISECOND,0);
+            previousFrom = cal.getTimeInMillis();
+            cal.set(Calendar.DAY_OF_MONTH, cal.getActualMaximum(Calendar.DAY_OF_MONTH));
+            cal.set(Calendar.HOUR_OF_DAY,23); cal.set(Calendar.MINUTE,59); cal.set(Calendar.SECOND,59);
+            previousTo = cal.getTimeInMillis();
+        }
+
+        final String uid = userId;
+
+        // Fetch current month income
+        long finalPreviousFrom = previousFrom;
+        long finalPreviousTo = previousTo;
+        repository.getSumIncomeInRange(uid, currentFrom, currentTo, currentIncome -> {
+            // Fetch previous month income
+            repository.getSumIncomeInRange(uid, finalPreviousFrom, finalPreviousTo, previousIncome -> {
+                if (getActivity() == null) return;
+                getActivity().runOnUiThread(() -> {
+                    updateIncomeComparison(currentIncome, previousIncome);
+                });
+            });
+        });
+
+        // Fetch current month expense
+        long finalPreviousFrom1 = previousFrom;
+        long finalPreviousTo1 = previousTo;
+        repository.getSumExpenseInRange(uid, currentFrom, currentTo, currentExpense -> {
+            // Fetch previous month expense
+            repository.getSumExpenseInRange(uid, finalPreviousFrom1, finalPreviousTo1, previousExpense -> {
+                if (getActivity() == null) return;
+                getActivity().runOnUiThread(() -> {
+                    updateExpenseComparison(currentExpense, previousExpense);
+                });
+            });
+        });
+    }
+
+    private void updateIncomeComparison(Double current, Double previous) {
+        if (tvIncomeComparison == null || tvIncomeChange == null) return;
+
+        double currentVal = current == null ? 0.0 : current;
+        double previousVal = previous == null ? 0.0 : previous;
+
+        if (previousVal == 0.0) {
+            tvIncomeComparison.setText(R.string.comparison_no_data);
+            tvIncomeChange.setText("—");
+            tvIncomeChange.setTextColor(getResources().getColor(android.R.color.darker_gray, null));
+            return;
+        }
+
+        String previousFormatted = CurrencyUtils.formatCurrency(getContext(), previousVal);
+        tvIncomeComparison.setText(getString(R.string.comparison_vs_last_month, previousFormatted));
+
+        double change = currentVal - previousVal;
+        double percentChange = (change / previousVal) * 100;
+
+        String changeText;
+        int color;
+        if (Math.abs(percentChange) < 0.01) {
+            changeText = getString(R.string.comparison_no_change);
+            color = getResources().getColor(android.R.color.darker_gray, null);
+        } else if (percentChange > 0) {
+            changeText = String.format("+%.1f%%", percentChange);
+            color = getResources().getColor(android.R.color.holo_green_dark, null);
+        } else {
+            changeText = String.format("%.1f%%", percentChange);
+            color = getResources().getColor(android.R.color.holo_red_dark, null);
+        }
+
+        tvIncomeChange.setText(changeText);
+        tvIncomeChange.setTextColor(color);
+    }
+
+    private void updateExpenseComparison(Double current, Double previous) {
+        if (tvExpenseComparison == null || tvExpenseChange == null) return;
+
+        double currentVal = Math.abs(current == null ? 0.0 : current);
+        double previousVal = Math.abs(previous == null ? 0.0 : previous);
+
+        if (previousVal == 0.0) {
+            tvExpenseComparison.setText(R.string.comparison_no_data);
+            tvExpenseChange.setText("—");
+            tvExpenseChange.setTextColor(getResources().getColor(android.R.color.darker_gray, null));
+            return;
+        }
+
+        String previousFormatted = CurrencyUtils.formatCurrency(getContext(), previousVal);
+        tvExpenseComparison.setText(getString(R.string.comparison_vs_last_month, previousFormatted));
+
+        double change = currentVal - previousVal;
+        double percentChange = (change / previousVal) * 100;
+
+        String changeText;
+        int color;
+        if (Math.abs(percentChange) < 0.01) {
+            changeText = getString(R.string.comparison_no_change);
+            color = getResources().getColor(android.R.color.darker_gray, null);
+        } else if (percentChange > 0) {
+            // For expenses, increase is bad (red)
+            changeText = String.format("+%.1f%%", percentChange);
+            color = getResources().getColor(android.R.color.holo_red_dark, null);
+        } else {
+            // For expenses, decrease is good (green)
+            changeText = String.format("%.1f%%", percentChange);
+            color = getResources().getColor(android.R.color.holo_green_dark, null);
+        }
+
+        tvExpenseChange.setText(changeText);
+        tvExpenseChange.setTextColor(color);
+    }
+
+    private void generateTestData() {
+        if (getContext() == null) return;
+
+        // Show loading toast
+        Toast.makeText(getContext(), R.string.test_data_generating, Toast.LENGTH_SHORT).show();
+
+        TestDataGenerator generator = new TestDataGenerator(requireContext());
+        generator.generateTestData(() -> {
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    Toast.makeText(getContext(), R.string.test_data_generated, Toast.LENGTH_LONG).show();
+                    // Refresh all data
+                    refreshData();
+                });
+            }
+        });
     }
 }

@@ -91,7 +91,6 @@ public class SettingsFragment extends Fragment {
         sp = requireActivity().getSharedPreferences("mdp_prefs", Context.MODE_PRIVATE);
 
         TextView tvCurrency = view.findViewById(R.id.tvCurrency);
-        TextView tvWeekStart = view.findViewById(R.id.tvWeekStart);
         TextView tvAutoDetect = view.findViewById(R.id.tvAutoDetect);
         TextView tvLanguage = view.findViewById(R.id.tvLanguage);
         TextView tvReminderSummary = view.findViewById(R.id.tvReminderSummary);
@@ -100,7 +99,6 @@ public class SettingsFragment extends Fragment {
         TextView tvVersion = view.findViewById(R.id.tvVersion);
 
         View cardCurrency = view.findViewById(R.id.card_currency);
-        View cardWeekStart = view.findViewById(R.id.card_week_start);
         View cardAutoDetect = view.findViewById(R.id.card_auto_detect);
         View cardLanguage = view.findViewById(R.id.card_language);
         View cardReminder = view.findViewById(R.id.card_reminder);
@@ -139,13 +137,11 @@ public class SettingsFragment extends Fragment {
 
         // load prefs
         String cur = sp.getString("pref_currency", "VND");
-        String weekStart = sp.getString("pref_week_start", "Monday");
         String language = sp.getString("pref_language", "vi");
         String reminder = sp.getString("pref_reminder_time", getString(R.string.reminder_time_default));
         boolean dailyOn = sp.getBoolean("pref_reminder_daily", true);
 
         tvCurrency.setText(mapCurrencyLabel(cur));
-        tvWeekStart.setText(mapWeekLabel(weekStart));
         tvLanguage.setText(LocaleHelper.getLanguageDisplayName(requireContext(), language));
         String extra = dailyOn ? (" " + getString(R.string.reminder_daily)) : "";
         tvReminderSummary.setText(getString(R.string.reminder_summary_format, getString(R.string.reminder_time_label), reminder, extra));
@@ -174,7 +170,6 @@ public class SettingsFragment extends Fragment {
         cardCurrency.setOnClickListener(v -> showCurrencyDialog(tvCurrency));
         cardAutoDetect.setOnClickListener(v -> showAutoDetectDialog(tvAutoDetect));
         cardLanguage.setOnClickListener(v -> showLanguageDialog(tvLanguage));
-        cardWeekStart.setOnClickListener(v -> showWeekStartDialog(tvWeekStart));
         cardReminder.setOnClickListener(v -> showTimePicker(tvReminderSummary));
         cardAccount.setOnClickListener(v -> showAccountDialog(emailFinal));
         cardData.setOnClickListener(v -> showDataOptions());
@@ -184,7 +179,6 @@ public class SettingsFragment extends Fragment {
         tvCurrency.setOnClickListener(v -> showCurrencyDialog(tvCurrency));
         tvAutoDetect.setOnClickListener(v -> showAutoDetectDialog(tvAutoDetect));
         tvLanguage.setOnClickListener(v -> showLanguageDialog(tvLanguage));
-        tvWeekStart.setOnClickListener(v -> showWeekStartDialog(tvWeekStart));
         tvReminderSummary.setOnClickListener(v -> showTimePicker(tvReminderSummary));
 
         switchDaily.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -287,22 +281,6 @@ public class SettingsFragment extends Fragment {
                 .show();
     }
 
-    private void showWeekStartDialog(TextView tvWeekStart) {
-        final String[] items = new String[]{"Monday", "Sunday"};
-        int checked = 0;
-        String cur = sp.getString("pref_week_start", "Monday");
-        for (int i = 0; i < items.length; i++) if (items[i].equalsIgnoreCase(cur)) checked = i;
-        new AlertDialog.Builder(requireContext())
-                .setTitle(R.string.change)
-                .setSingleChoiceItems(new String[]{getString(R.string.chip_mon), getString(R.string.chip_sun)}, checked, (dialog, which) -> {
-                    String sel = items[which];
-                    sp.edit().putString("pref_week_start", sel).apply();
-                    tvWeekStart.setText(mapWeekLabel(sel));
-                    dialog.dismiss();
-                })
-                .setNegativeButton(R.string.cancel, null)
-                .show();
-    }
 
     private void showTimePicker(TextView tvReminderSummary) {
         // read current time from prefs (format HH:mm)
@@ -427,11 +405,6 @@ public class SettingsFragment extends Fragment {
         }
     }
 
-    private String mapWeekLabel(String code) {
-        if (code == null) return getString(R.string.chip_mon);
-        if ("Sunday".equalsIgnoreCase(code)) return getString(R.string.chip_sun);
-        return getString(R.string.chip_mon);
-    }
 
     /**
      * Check if notification permission is granted (Android 13+)

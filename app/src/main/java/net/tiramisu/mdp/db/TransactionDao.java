@@ -40,4 +40,12 @@ public interface TransactionDao {
     // Get earliest transaction timestamp for a user (or NULL if none)
     @Query("SELECT MIN(timestamp) FROM transactions WHERE userId = :userId")
     Long getMinTimestampForUser(String userId);
+
+    // Delete a transaction by ID
+    @Query("DELETE FROM transactions WHERE id = :transactionId")
+    void deleteById(long transactionId);
+
+    // Get a transaction by userId, timestamp, and amount (to find transaction for deletion)
+    @Query("SELECT * FROM transactions WHERE userId = :userId AND timestamp = :timestamp AND amount = :amount LIMIT 1")
+    TransactionEntity getByUserAndTimestampAndAmount(String userId, long timestamp, double amount);
 }

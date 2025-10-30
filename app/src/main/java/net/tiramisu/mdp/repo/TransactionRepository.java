@@ -10,12 +10,15 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 
 import net.tiramisu.mdp.db.AppDatabase;
 import net.tiramisu.mdp.db.TransactionDao;
 import net.tiramisu.mdp.model.TransactionEntity;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executor;
@@ -260,6 +263,82 @@ public class TransactionRepository {
         }).addOnFailureListener(e -> {
             if (callback != null) callback.accept(0.0);
         });
+    }
+
+    // Delete a transaction by ID and adjust the user's base balance
+    public void deleteTransaction(final long transactionId, final String userId, final double transactionAmount, final Runnable callback) {
+        executor.execute(() -> {
+            try {
+                dao.deleteById(transactionId);
+                Log.d("TRRepo", "deleted tx id=" + transactionId + " userId=" + userId + " amount=" + transactionAmount);
+
+                // Adjust the base balance: subtract the transaction amount
+                // (If it was expense (-100), subtracting -100 increases balance by 100)
+                // (If it was income (+100), subtracting +100 decreases balance by 100)
+                adjustBaseBalance(userId, -transactionAmount);
+
+                // notify listeners after successful delete on main thread
+                Handler mainHandler = new Handler(Looper.getMainLooper());
+                for (Runnable r : listeners) {
+                    try {
+                        Log.d("TRRepo", "posting listener to main thread after delete");
+                        mainHandler.post(r);
+                    } catch (Exception ignored) {}
+                }
+
+                // Also call notifyChange to ensure all listeners are triggered
+                mainHandler.post(() -> notifyChange());
+            } catch (Exception ex) {
+                Log.d("TRRepo", "delete failed: " + ex.getMessage());
+            }
+            if (callback != null) {
+                Handler mainHandler = new Handler(Looper.getMainLooper());
+                mainHandler.post(callback);
+            }
+        });
+    }
+
+    // Get transaction by userId, timestamp, and amount (to find transaction for deletion)
+    public void getByUserAndTimestampAndAmount(final String userId, final long timestamp, final double amount, final Consumer<TransactionEntity> callback) {
+        executor.execute(() -> {
+            TransactionEntity res = null;
+            try {
+                res = dao.getByUserAndTimestampAndAmount(userId, timestamp, amount);
+            } catch (Exception ignored) {}
+            if (callback != null) callback.accept(res);
+        });
+    }
+
+    // Adjust the base balance by the given delta (can be positive or negative)
+    private void adjustBaseBalance(final String userId, final double delta) {
+        final String key = (userId == null || userId.isEmpty()) ? "local" : userId;
+
+        if ("local".equals(key)) {
+            // Update SharedPreferences for local user
+            if (appContext == null) return;
+            SharedPreferences sp = appContext.getSharedPreferences("mdp_local", Context.MODE_PRIVATE);
+            double currentBalance = Double.longBitsToDouble(sp.getLong("local_balance_bits", Double.doubleToLongBits(0.0)));
+            double newBalance = currentBalance + delta;
+            sp.edit().putLong("local_balance_bits", Double.doubleToLongBits(newBalance)).apply();
+            setCachedBaseBalance(key, newBalance);
+            Log.d("TRRepo", "adjustBaseBalance: local user, delta=" + delta + ", new balance=" + newBalance);
+        } else {
+            // Update Firestore for remote user
+            getUserBaseBalance(key, currentBalance -> {
+                double newBalance = (currentBalance != null ? currentBalance : 0.0) + delta;
+                FirebaseFirestore db = FirebaseFirestore.getInstance();
+                Map<String, Object> data = new HashMap<>();
+                data.put("balance", newBalance);
+                db.collection("users").document(key).set(data, SetOptions.merge())
+                    .addOnSuccessListener(aVoid -> {
+                        setCachedBaseBalance(key, newBalance);
+                        Log.d("TRRepo", "adjustBaseBalance: remote user=" + key + ", delta=" + delta + ", new balance=" + newBalance);
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.d("TRRepo", "adjustBaseBalance failed for user=" + key + ": " + e.getMessage());
+                    });
+            });
+        }
     }
 
 }

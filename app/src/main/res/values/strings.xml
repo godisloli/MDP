@@ -214,5 +214,26 @@
     <string name="phone_number_invalid">Số điện thoại không hợp lệ</string>
     <string name="auto_transaction_detected">Phát hiện giao dịch tự động</string>
     <string name="auto_transaction_added">Đã thêm giao dịch: %s</string>
+
+    <!-- Delete transaction -->
+    <string name="delete_transaction">Xóa giao dịch</string>
+    <string name="delete_transaction_title">Xóa giao dịch?</string>
+    <string name="delete_transaction_message">Bạn có chắc chắn muốn xóa giao dịch này? Số dư sẽ được điều chỉnh tự động.</string>
+    <string name="delete_transaction_success">Đã xóa giao dịch thành công</string>
+    <string name="delete_transaction_error">Không tìm thấy giao dịch để xóa</string>
+
+    <!-- Month comparison -->
+    <string name="comparison_title">So sánh với tháng trước</string>
+    <string name="comparison_loading">Đang tải…</string>
+    <string name="comparison_no_data">Không có dữ liệu tháng trước</string>
+    <string name="comparison_vs_last_month">so với tháng trước: %s</string>
+    <string name="comparison_increase">Tăng %s</string>
+    <string name="comparison_decrease">Giảm %s</string>
+    <string name="comparison_no_change">Không đổi</string>
+
+    <!-- Test data -->
+    <string name="generate_test_data">Tạo dữ liệu test</string>
+    <string name="test_data_generated">Đã tạo dữ liệu test thành công</string>
+    <string name="test_data_generating">Đang tạo dữ liệu test…</string>
 </resources>
 

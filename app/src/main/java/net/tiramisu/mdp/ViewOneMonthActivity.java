@@ -25,7 +25,6 @@ public class ViewOneMonthActivity extends AppCompatActivity {
     private TextView tvTotalExpense;
     private TextView tvMonthBalance;
     private PieChart pieChartExpense;
-    private PieChart pieChartIncome;
 
     @Override
     protected void attachBaseContext(Context newBase) {
@@ -43,7 +42,6 @@ public class ViewOneMonthActivity extends AppCompatActivity {
         tvMonthBalance = findViewById(R.id.tvMonthBalance);
         RecyclerView rvMonthTransactions = findViewById(R.id.rvMonthTransactions);
         pieChartExpense = findViewById(R.id.pieChartExpense);
-        pieChartIncome = findViewById(R.id.pieChartIncome);
 
         String monthLabel = getIntent().getStringExtra("EXTRA_MONTH_LABEL");
         if (monthLabel == null || monthLabel.isEmpty()) {
@@ -66,22 +64,18 @@ public class ViewOneMonthActivity extends AppCompatActivity {
     }
 
     private void setupPieCharts(List<Transaction> transactions) {
-        // Aggregate by category into expense and income maps
+        // Aggregate by category into expense map
         java.util.Map<String, Double> expenseMap = new java.util.HashMap<>();
-        java.util.Map<String, Double> incomeMap = new java.util.HashMap<>();
         for (Transaction t : transactions) {
             String cat = t.title == null ? "Khác" : t.title;
             double v = t.amount;
             if (v < 0) {
                 expenseMap.put(cat, expenseMap.getOrDefault(cat, 0.0) + Math.abs(v));
-            } else if (v > 0) {
-                incomeMap.put(cat, incomeMap.getOrDefault(cat, 0.0) + v);
             }
         }
 
-        // populate both charts
+        // populate expense chart only
         populatePie(pieChartExpense, expenseMap, "Chi tiêu");
-        populatePie(pieChartIncome, incomeMap, "Thu nhập");
     }
 
     private void populatePie(PieChart chart, java.util.Map<String, Double> map, String centerText) {
